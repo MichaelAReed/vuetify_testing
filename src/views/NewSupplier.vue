@@ -1,5 +1,10 @@
 <template>
 	<v-container>
+		<v-row v-if="error">
+			<v-col cols="12" sm="6" offset-sm="3">
+				<app-alert @dismissed="onDismissed" :text="error.message"></app-alert>
+			</v-col>
+		</v-row>
 		<v-row>
 			<v-col cols="12" sm="6" offset-sm="3">
 				<h2 class="primary--text">Add a New Supplier</h2>
@@ -60,19 +65,23 @@
 					</v-row>
 					<v-row>
 						<v-col cols="12" sm="6" offset-sm="3">
-							<v-text-field
-								name="supplierImageURL"
-								label="Supplier Image URL"
-								id="supplier-image-url"
-								v-model="supplierImageURL"
-								required
-							>
-							</v-text-field>
+							<v-file-input
+								label="Main Image"
+								filled
+								show-size
+								chips
+								accept="image/*"
+								prepend-icon="mdi-camera"
+								@change="onFilePicked"
+							></v-file-input>
 						</v-col>
 					</v-row>
-					<v-row>
+					<v-row v-if="supplierImageURL">
 						<v-col cols="12" sm="6" offset-sm="3">
-							<img :src="supplierImageURL" height="150" />
+							<v-card>
+								<v-img :src="supplierImageURL" max-height="300" contain></v-img>
+								<v-card-title class="title">{{ supplierImageName }}</v-card-title>
+							</v-card>
 						</v-col>
 					</v-row>
 					<v-row>
@@ -101,7 +110,8 @@
 						<v-col cols="12" sm="6" offset-sm="3">
 							<v-btn
 								class="primary"
-								:disabled="!formIsValid"
+								:disabled="!formIsValid || loading"
+								:loading="loading"
 								type="submit"
 							>
 								Create Supplier
@@ -109,6 +119,11 @@
 						</v-col>
 					</v-row>
 				</form>
+			</v-col>
+		</v-row>
+		<v-row v-if="error">
+			<v-col cols="12" sm="6" offset-sm="3">
+				<app-alert @dismissed="onDismissed" :text="error.message"></app-alert>
 			</v-col>
 		</v-row>
 	</v-container>
@@ -123,6 +138,8 @@ export default {
 			supplierLocation: '',
 			supplierDescription: '',
 			supplierImageURL: '',
+			supplierImage: null,
+			supplierImageName: '',
 			date: new Date().toISOString().substr(0, 10),
 			time: new Date()
 		};
@@ -151,11 +168,22 @@ export default {
 			date.setHours(hours);
 			date.setMinutes(minutes);
 			return date;
-		}
+		},
+		loading() {
+			return this.$store.getters.loading;
+		},
+		error() {
+			return this.$store.getters.error;
+		},
 	},
 	methods: {
 		onCreateSupplier() {
 			if (!this.formIsValid) {
+				this.$store.dispatch('setError', 'Invalid input information.');
+				return;
+			}
+			if (!this.supplierImage) {
+				this.$store.dispatch('setError', 'No image input.');
 				return;
 			}
 			const supplierData = {
@@ -163,11 +191,27 @@ export default {
 				url: this.supplierURL,
 				location: this.supplierLocation,
 				description: this.supplierDescription,
-				imageURL: this.supplierImageURL,
+				image: this.supplierImage,
 				date: this.submittableDateTime
 			};
 			this.$store.dispatch('createSupplier', supplierData);
-			this.$router.push('/suppliers');
+		},
+		onFilePicked(file) {
+			let filename = file.name;
+			if (filename.lastIndexOf('.') <= 0) {
+				return alert('Please add a valid file!');
+			}
+			const fileReader = new FileReader()
+			fileReader.addEventListener('load', () => {
+				this.supplierImageURL = fileReader.result;
+				this.supplierImageName = filename;
+			})
+			fileReader.readAsDataURL(file);
+			this.supplierImage = file;
+		},
+		onDismissed() {
+			 console.log('Dismissed Alert');
+			 this.$store.dispatch('clearError');
 		}
 	}
 };

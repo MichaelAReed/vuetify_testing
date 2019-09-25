@@ -25,7 +25,7 @@
 			</v-col>
 		</v-row>
 		<v-row v-if="!loading">
-			<v-col cols="12">
+			<v-col cols="12" sm="10" offset-sm="1">
 				<v-carousel cycle style="cursor: pointer">
 					<v-carousel-item
 						v-for="supplier in suppliers"

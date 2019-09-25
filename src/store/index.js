@@ -95,25 +95,48 @@ export const store = new Vuex.Store({
 				});
 		},
 		createSupplier({ commit, getters }, payload) {
+			commit('setLoading', true);
+			commit('clearError');
 			const supplier = {
 				name: payload.name,
 				url: payload.url,
 				location: payload.location,
 				description: payload.description,
-				imageURL: payload.imageURL,
 				date: payload.date.toISOString(),
 				creatorID: getters.user.id
 			};
+			let imageURL;
+			let key;
 			firebase.database().ref('suppliers').push(supplier)
 				.then((data) => {
-					const key = data.key;
+					key = data.key;
+					return key
+				})
+				.then(key => {
+					const filename = payload.image.name;
+					const ext = filename.slice(filename.lastIndexOf('.'));
+					return firebase.storage().ref('suppliers/' + key + ext).put(payload.image);
+				})
+				.then(fileData => {
+					return fileData.ref.getDownloadURL()
+				})
+				.then(downloadURL => {
+					imageURL = downloadURL;
+					return firebase.database().ref('suppliers').child(key).update({imageURL: imageURL})
+				})
+				.then(() => {
 					commit('createSupplier', {
 						...supplier,
+						imageURL: imageURL,
 						id: key
 					});
+					commit('setLoading', false);
+					router.push('/suppliers');
 				})
 				.catch((error) => {
 					console.log(error);
+					commit('setLoading', false);
+					commit('setError', error);
 				})
 		},
 		signUpUser({commit}, payload) {
@@ -134,7 +157,7 @@ export const store = new Vuex.Store({
 				.catch(
 					error => {
 						commit('setLoading', false);
-						commit('setError', error)
+						commit('setError', error);
 						console.log(error);
 					}
 				)
@@ -171,6 +194,9 @@ export const store = new Vuex.Store({
 		},
 		clearError({commit}) {
 			commit('clearError');
+		},
+		setError({commit}, message) {
+			commit('setError', {message: message})
 		}
 	},
 	getters: {

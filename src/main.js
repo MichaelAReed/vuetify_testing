@@ -25,7 +25,7 @@ new Vue({
 			apiKey: "AIzaSyCcU9Y9LLLBOzNJR8KDBQmkk_k-bbon8rQ",                             // Auth / General Use
 			authDomain: "https://hax-supplier-database.firebaseapp.com/",         // Auth with popup/redirect
 			databaseURL: "https://hax-supplier-database.firebaseio.com", // Realtime Database
-			storageBucket: "YOUR_APP.appspot.com",          // Storage
+			storageBucket: "gs://hax-supplier-database.appspot.com",          // Storage
 			messagingSenderId: "123456789"                  // Cloud Messaging
 		});
 		firebase.auth().onAuthStateChanged((user) => {
