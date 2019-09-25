@@ -1,5 +1,5 @@
 <template>
-	<v-container>
+	<v-layout>
 		<v-row v-if="error">
 			<v-col cols="12" sm="6" offset-sm="3">
 				<app-alert @dismissed="onDismissed" :text="error.message"></app-alert>
@@ -53,7 +53,7 @@
 				</v-card>
 			</v-col>
 		</v-row>
-	</v-container>
+	</v-layout>
 </template>
 
 <script>

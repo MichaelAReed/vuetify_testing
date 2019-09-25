@@ -1,5 +1,10 @@
 <template>
 	<v-container>
+		<v-row>
+			<v-col cols="12" sm="6" offset-sm="3">
+				<h4>Create a New Account</h4>
+			</v-col>
+		</v-row>
 		<v-row v-if="error">
 			<v-col cols="12" sm="6" offset-sm="3">
 				<app-alert @dismissed="onDismissed" :text="error.message"></app-alert>
@@ -10,7 +15,7 @@
 				<v-card>
 					<v-card-text>
 						<v-container>
-							<v-form @submit.prevent="onLogin">
+							<v-form @submit.prevent="onSignUp">
 								<v-row>
 									<v-col cols="12">
 										<v-text-field
@@ -36,15 +41,25 @@
 										>
 										</v-text-field>
 									</v-col>
+								<v-row>
+								</v-row>
+									<v-col cols="12">
+										<v-text-field
+										name="confirmPassword"
+										label="Confirm Password"
+										id="confirmPassword"
+										v-model="confirmPassword"
+										type="password"
+										:rules="[comparePasswords]"
+										>
+										</v-text-field>
+									</v-col>
 								</v-row>
 								<v-row>
-									<v-col cols="6">
-										<v-btn type="submit" :disabled="loading" :loading="loading">
-											Login
+									<v-col cols="12">
+										<v-btn type="submit" :disabled="loading" :loading="loading" @click="loading = 'loading'">
+											Sign Up
 										</v-btn>
-									</v-col>
-									<v-col cols="6">
-										<v-btn to="/signup">Create New Account</v-btn>
 									</v-col>
 								</v-row>
 							</v-form>
@@ -61,10 +76,14 @@ export default {
 	data() {
 		return {
 			email: '',
-			password: ''
+			password: '',
+			confirmPassword: ''
 		}
 	},
 	computed: {
+		comparePasswords() {
+			return this.password !== this.confirmPassword ? 'Passwords do not match' : '';
+		},
 		user() {
 			return this.$store.getters.user;
 		},
@@ -83,8 +102,8 @@ export default {
 		}
 	},
 	methods: {
-		onLogin() {
-			this.$store.dispatch('loginUser', {email: this.email, password: this.password});
+		onSignUp() {
+			this.$store.dispatch('signUpUser', {email: this.email, password: this.password});
 		},
 		onDismissed() {
 			 console.log('Dismissed Alert');

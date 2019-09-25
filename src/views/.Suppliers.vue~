@@ -1,7 +1,7 @@
 <template>
 	<v-container>
 		<v-row>
-			<v-col cols="6" offset-sm="1" offset-md="2">
+			<v-col cols="6" sm-offset="1" md-offset="2">
 				<v-btn outlined router to="/suppliers/new" class="primary">
 					Add New Supplier
 				</v-btn>

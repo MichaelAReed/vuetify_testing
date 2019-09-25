@@ -3,7 +3,7 @@ import Router from 'vue-router';
 import Home from './views/Home.vue';
 import Profile from './views/Profile.vue';
 import Login from './views/Login.vue';
-import Signup from './views/SignUp.vue';
+import SignUp from './views/SignUp.vue';
 import People from './views/People.vue';
 import BookRoom from './views/BookRoom.vue';
 import Suppliers from './views/Suppliers.vue';

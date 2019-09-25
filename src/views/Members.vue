@@ -1,9 +1,0 @@
-<template>
-	<div>
-		<h1>This is a members page that will be protected.</h1>
-		<h1>Secure Page</h1>
-		<div>
-		<router-link to="/">Go back</router-link>
-		</div>
-	</div>
-</template>

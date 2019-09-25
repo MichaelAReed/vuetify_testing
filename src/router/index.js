@@ -1,15 +1,16 @@
 import Vue from 'vue';
 import Router from 'vue-router';
-import Home from './views/Home.vue';
-import Profile from './views/Profile.vue';
-import Login from './views/Login.vue';
-import Signup from './views/SignUp.vue';
-import People from './views/People.vue';
-import BookRoom from './views/BookRoom.vue';
-import Suppliers from './views/Suppliers.vue';
-import NewSupplier from './views/NewSupplier.vue';
-import Supplier from './views/Supplier.vue';
-import Tools from './views/Tools.vue';
+import Home from '@/views/Home.vue';
+import Profile from '@/views/Profile.vue';
+import Login from '@/views/Login.vue';
+import SignUp from '@/views/SignUp.vue';
+import People from '@/views/People.vue';
+import BookRoom from '@/views/BookRoom.vue';
+import Suppliers from '@/views/Suppliers.vue';
+import NewSupplier from '@/views/NewSupplier.vue';
+import Supplier from '@/views/Supplier.vue';
+import Tools from '@/views/Tools.vue';
+import AuthGuard from '@/router/AuthGuard';
 
 Vue.use(Router);
 
@@ -25,7 +26,8 @@ export default new Router({
 		{
 			path: '/profile',
 			name: 'profile',
-			component: Profile
+			component: Profile,
+			beforeEnter: AuthGuard
 		},
 		{
 			path: '/login',
@@ -50,18 +52,21 @@ export default new Router({
 		{
 			path: '/suppliers',
 			name: 'suppliers',
-			component: Suppliers
+			component: Suppliers,
+			beforeEnter: AuthGuard
 		},
 		{
 			path: '/suppliers/new',
 			name: 'newSupplier',
-			component: NewSupplier
+			component: NewSupplier,
+			beforeEnter: AuthGuard
 		},
 		{
 			path: '/suppliers/:id',
 			name: 'supplier',
 			props: true,
-			component: Supplier
+			component: Supplier,
+			beforeEnter: AuthGuard
 		},
 		{
 			path: '/tools',

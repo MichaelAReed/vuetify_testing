@@ -1,0 +1,174 @@
+<template>
+	<v-container>
+		<v-row>
+			<v-col cols="12" sm="6" offset-sm="3">
+				<h2 class="primary--text">Add a New Supplier</h2>
+			</v-col>
+		</v-row>
+		<v-row>
+			<v-col cols="12">
+				<form @submit.prevent="onCreateSupplier">
+					<v-row class="mb-0 mt-0">
+						<v-col cols="12" sm="6" offset-sm="3">
+							<v-text-field
+								name="supplierName"
+								label="Supplier Name"
+								id="supplier-name"
+								v-model="supplierName"
+								required
+							>
+							</v-text-field>
+						</v-col>
+					</v-row>
+					<v-row class="mb-0 mt-0">
+						<v-col cols="12" sm="6" offset-sm="3">
+							<v-text-field
+								name="supplierURL"
+								label="Supplier URL"
+								id="supplier-url"
+								v-model="supplierURL"
+								required
+							>
+							</v-text-field>
+						</v-col>
+					</v-row>
+					<v-row>
+						<v-col cols="12" sm="6" offset-sm="3">
+							<v-text-field
+								name="supplierLocation"
+								label="Supplier Location"
+								id="supplier-location"
+								v-model="supplierLocation"
+								required
+							>
+							</v-text-field>
+						</v-col>
+					</v-row>
+					<v-row>
+						<v-col cols="12" sm="6" offset-sm="3">
+							<v-textarea
+								name="supplierDescription"
+								label="Supplier Description"
+								id="supplier-description"
+								v-model="supplierDescription"
+								hint="Describe the services the supplier provides as well as any important information like 'Can accept USD payments'"
+								clearable
+								required
+							>
+							</v-textarea>
+						</v-col>
+					</v-row>
+					<v-row>
+						<v-col cols="12" sm="6" offset-sm="3">
+							<v-text-field
+								name="supplierImageURL"
+								label="Supplier Image URL"
+								id="supplier-image-url"
+								v-model="supplierImageURL"
+								required
+							>
+							</v-text-field>
+						</v-col>
+					</v-row>
+					<v-row>
+						<v-col cols="12" sm="6" offset-sm="3">
+							<img :src="supplierImageURL" height="150" />
+						</v-col>
+					</v-row>
+					<v-row>
+						<v-col cols="12" sm="6" offset-sm="3">
+							tags, url, description, private/public,
+							Contact people -> name, position, email, phone, wechat,
+							requires introduction
+						</v-col>
+					</v-row>
+					<v-row>
+						<v-col cols="12" sm="6" offset-sm="3">
+							<h4>Choose a Date and Time</h4>
+						</v-col>
+					</v-row>
+					<v-row class="mb-2">
+						<v-col cols="12" sm="6" offset-sm="3">
+							<v-date-picker v-model="date" format="24hr"></v-date-picker>
+						</v-col>
+					</v-row>
+					<v-row>
+						<v-col cols="12" sm="6" offset-sm="3">
+							<v-time-picker v-model="time"></v-time-picker>
+						</v-col>
+					</v-row>
+					<v-row>
+						<v-col cols="12" sm="6" offset-sm="3">
+							<v-btn
+								class="primary"
+								:disabled="!formIsValid"
+								type="submit"
+							>
+								Create Supplier
+							</v-btn>
+						</v-col>
+					</v-row>
+				</form>
+			</v-col>
+		</v-row>
+	</v-container>
+</template>
+
+<script>
+export default {
+	data() {
+		return {
+			supplierName: '',
+			supplierURL: '',
+			supplierLocation: '',
+			supplierDescription: '',
+			supplierImageURL: '',
+			date: new Date().toISOString().substr(0, 10),
+			time: new Date()
+		};
+	},
+	computed: {
+		formIsValid() {
+			return (
+				this.supplierName !== '' &&
+				this.supplierLocation !== '' &&
+				this.supplierLocation !== '' &&
+				this.supplierDescription !== '' &&
+				this.supplierImageURL !== ''
+			);
+		},
+		submittableDateTime() {
+			const date = new Date(this.date);
+			let hours = 0;
+			let minutes = 0;
+			if (typeof this.time === 'string') {
+				hours = this.time.match(/(\d+)/)[1];
+				minutes = this.time.match(/:(\d+)/)[1];
+			} else {
+				hours = this.time.getHours();
+				minutes = this.time.getMinutes();
+			}
+			date.setHours(hours);
+			date.setMinutes(minutes);
+			return date;
+		}
+	},
+	methods: {
+		onCreateSupplier() {
+			if (!this.formIsValid) {
+				return;
+			}
+			const supplierData = {
+				name: this.supplierName,
+				url: this.supplierURL,
+				location: this.supplierLocation,
+				description: this.supplierDescription,
+				imageURL: this.supplierImageURL,
+				date: this.submittableDateTime
+			};
+			this.$store.dispatch('createSupplier', supplierData);
+			this.$router.push('/suppliers');
+		}
+	}
+};
+</script>

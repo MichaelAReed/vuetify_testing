@@ -1,34 +1,122 @@
 <template>
-<v-app>
-	<v-app-bar app>
-	<v-toolbar-title class="headline text-uppercase">
-		<span>Vuetify testing things</span>
-		<span class="font-weight-light">MATERIAL DESIGN</span>
-	</v-toolbar-title>
-	<v-spacer></v-spacer>
-	<v-btn text to="/about" class="mr-2">About</v-btn>
-	<v-btn text to="/contact" class="mr-2">Contact</v-btn>
-	<v-btn text to="/" class="mr-2">Home</v-btn>
-	<v-btn text to="/members" class="mr-2">Members
-	</v-btn>
-	</v-app-bar>
+	<v-app dark>
+		<v-navigation-drawer v-model="sideNav" absolute temporary>
+			<v-list>
+				<v-list-item to="/profile">
+					<v-list-item-avatar>
+						<v-img
+							src="https://randomuser.me/api/portraits/men/78.jpg"
+						>
+						</v-img>
+					</v-list-item-avatar>
 
-	<v-content>
-	<router-view></router-view>
-	</v-content>
-</v-app>
+					<v-list-item-content>
+						<v-list-item-title>John Leider</v-list-item-title>
+					</v-list-item-content>
+				</v-list-item>
+
+				<v-divider></v-divider>
+				<v-list-item
+					v-for="item in menuItems"
+					:key="item.title"
+					:to="item.link"
+				>
+					<v-list-item-action>
+						<v-icon>{{ item.icon }}</v-icon>
+					</v-list-item-action>
+					<v-list-item-content>{{ item.title }}</v-list-item-content>
+				</v-list-item>
+				<v-list-item v-if="userIsAuthenticated" @click="onLogout">
+					<v-list-item-action>
+						<v-icon>mdi-exit-to-app</v-icon>
+					</v-list-item-action>
+					<v-list-item-content>Logout</v-list-item-content>
+				</v-list-item>
+			</v-list>
+		</v-navigation-drawer>
+		<v-app-bar app>
+			<v-app-bar-nav-icon
+				left
+				@click.stop="sideNav = !sideNav"
+				class="hidden-sm-and-up"
+			>
+			</v-app-bar-nav-icon>
+			<v-toolbar-title>
+				<router-link to="/" tag="span" style="cursor: pointer">
+					HAX Community Dashboard
+				</router-link>
+			</v-toolbar-title>
+			<v-spacer></v-spacer>
+
+			<v-toolbar-items class="hidden-xs-only">
+				<v-btn
+					text
+					v-for="item in menuItems"
+					:key="item.title"
+					:to="item.link"
+				>
+					<v-icon left>{{ item.icon }}</v-icon>
+					{{ item.title }}
+				</v-btn>
+			</v-toolbar-items>
+			<v-toolbar-items class="hidden-xs-only" v-if="userIsAuthenticated" @click="onLogout">
+				<v-btn text>
+					<v-icon left>mdi-exit-to-app</v-icon>
+					Logout
+				</v-btn>
+			</v-toolbar-items>
+		</v-app-bar>
+		<v-content>
+			<router-view></router-view>
+		</v-content>
+	</v-app>
 </template>
 
 <script>
-import HelloWorld from './components/HelloWorld';
-
 export default {
-name: 'App',
-components: {
-	HelloWorld,
-},
-data: () => ({
-	//
-}),
+	data() {
+		return {
+			sideNav: false,
+		};
+	},
+	computed: {
+		userIsAuthenticated() {
+			return (this.$store.getters.user !== null && this.$store.getters.user !== undefined);
+		},
+		menuItems() {
+			let menuItems = [
+				{
+					icon: 'mdi-lock-open',
+					title: 'Login',
+					link: '/login'
+				}
+			]
+			if(this.userIsAuthenticated) {
+				menuItems = [
+					{
+						icon: 'mdi-account-tie',
+						title: 'Suppliers',
+						link: '/suppliers'
+					},
+					{
+						icon: 'mdi-tools',
+						title: 'Tools',
+						link: '/tools'
+					},
+					{
+						icon: 'mdi-account-group',
+						title: 'People',
+						link: '/people'
+					},
+					{
+						icon: 'mdi-door',
+						title: 'Book a Room',
+						link: '/bookroom'
+					}
+				]
+			}
+			return menuItems;
+		}
+	}
 };
 </script>
