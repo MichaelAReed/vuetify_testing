@@ -43,6 +43,8 @@ export const store = new Vuex.Store({
 				date: new Date()
 			}
 		],
+		loadedTeams: [],
+		loadedUsers: [],
 		user: null,
 		loading: false,
 		error: null
@@ -53,6 +55,38 @@ export const store = new Vuex.Store({
 		},
 		createSupplier(state, payload) {
 			state.loadedSuppliers.push(payload);
+		},
+		createTeam(state, payload) {
+			state.loadedTeams.push(payload);
+		},
+		setLoadedTeams(state, payload) {
+			state.loadedTeams = payload;
+		},
+		createUser(state, payload) {
+			state.loadedUsers.push(payload);
+		},
+		setLoadedUsers(state, payload) {
+			state.loadedUsers = payload;
+		},
+		updateSupplierData(state, payload) {
+			const supplier = state.loadedSuppliers.find(supplier => {
+				return supplier.id === payload.id
+			});
+			if (payload.name) {
+				supplier.name = payload.name;
+			}
+			if (payload.url) {
+				supplier.url = payload.url;
+			}
+			if (payload.description) {
+				supplier.description = payload.description;
+			}
+			if (payload.location) {
+				supplier.location = payload.location;
+			}
+			if (payload.date) {
+				supplier.date = payload.date;
+			}
 		},
 		setUser(state, payload) {
 			state.user = payload;
@@ -90,9 +124,159 @@ export const store = new Vuex.Store({
 					commit('setLoadedSuppliers', suppliers);
 				})
 				.catch((error) => {
-					console.log(error);
+					commit('setError', error);
 					commit('setLoading', false);
 				});
+		},
+		loadTeams({ commit }) {
+			commit('setLoading', true);
+			firebase.database().ref('teams').once('value')
+				.then((data) => {
+					const teams = [];
+					const obj = data.val();
+					for (let key in obj) {
+						teams.push({
+							id: key,
+							name: obj[key].name,
+							url: obj[key].url,
+							imageURL: obj[key].imageURL,
+							description: obj[key].description,
+							status: obj[key].status,
+							members: [],
+							lastUpdated: obj[key].lastUpdated
+						})
+					}
+					commit('setLoading', false);
+					commit('setLoadedTeams', teams);
+				})
+				.catch((error) => {
+					commit('setError', error);
+					commit('setLoading', false);
+				});
+		},
+		createTeam({ commit }, payload) {
+			commit('setLoading', true);
+			commit('clearError');
+			const team = {
+				name: payload.name,
+				url: payload.url,
+				description: payload.description,
+				credits: payload.credits,
+				status: payload.status,
+				lastUpdated: new Date()
+			}
+			let imageURL;
+			let key;
+			firebase.database().ref('teams').push(team)
+				.then((data) => {
+					key = data.key;
+					return key
+				})
+				.then(key => {
+					const filename = payload.image.name;
+					const ext = filename.slice(filename.lastIndexOf('.'));
+					return firebase.storage().ref('teams/' + key + ext).put(payload.image);
+				})
+				.then(fileData => {
+					return fileData.ref.getDownloadURL()
+				})
+				.then(downloadURL => {
+					imageURL = downloadURL;
+					return firebase.database().ref('teams').child(key).update({imageURL: imageURL})
+				})
+				.then(() => {
+					commit('createTeam', {
+						...team,
+						imageURL: imageURL,
+						id: key
+					});
+					commit('setLoading', false);
+					router.push('/teams/'+key);
+				})
+				.catch((error) => {
+					console.log(error);
+					commit('setLoading', false);
+					commit('setError', error);
+				})
+		},
+		loadUsers({ commit }) {
+			commit('setLoading', true);
+			firebase.database().ref('users').once('value')
+				.then((data) => {
+					const users = [];
+					const obj = data.val();
+					for (let key in obj) {
+						users.push({
+							id: key,
+							name: obj[key].name,
+							email: obj[key].email,
+							wechat: obj[key].wechat,
+							mattermostID: obj[key].mattermostID,
+							phoneNum: obj[key].phoneNum,
+							lang: obj[key].lang,
+							team: obj[key].team,
+							position: obj[key].position,
+							introduction: obj[key].introduction,
+							lastUpdated: obj[key].lastUpdated,
+							imageURL: obj[key].imageURL
+						})
+					}
+					commit('setLoading', false);
+					commit('setLoadedUsers', users);
+				})
+				.catch((error) => {
+					commit('setError', error);
+					commit('setLoading', false);
+				});
+		},
+		createUser({ commit }, payload) {
+			commit('setLoading', true);
+			commit('clearError');
+			const user = {
+				name: payload.name,
+				email: payload.email,
+				wechat: payload.wechat,
+				mattermostID: payload.mattermostID,
+				phoneNum: payload.phoneNum,
+				lang: payload.lang,
+				team: payload.team,
+				position: payload.position,
+				introduction: payload.introduction,
+				lastUpdated: new Date(),
+			}
+			let imageURL;
+			let key;
+			firebase.database().ref('users').push(user)
+				.then((data) => {
+					key = data.key;
+					return key
+				})
+				.then(key => {
+					const filename = payload.image.name;
+					const ext = filename.slice(filename.lastIndexOf('.'));
+					return firebase.storage().ref('users/' + key + ext).put(payload.image);
+				})
+				.then(fileData => {
+					return fileData.ref.getDownloadURL()
+				})
+				.then(downloadURL => {
+					imageURL = downloadURL;
+					return firebase.database().ref('users').child(key).update({imageURL: imageURL})
+				})
+				.then(() => {
+					commit('createUser', {
+						...user,
+						imageURL: imageURL,
+						id: key
+					});
+					commit('setLoading', false);
+					router.push('/users/'+key);
+				})
+				.catch((error) => {
+					console.log(error);
+					commit('setLoading', false);
+					commit('setError', error);
+				})
 		},
 		createSupplier({ commit, getters }, payload) {
 			commit('setLoading', true);
@@ -138,6 +322,35 @@ export const store = new Vuex.Store({
 					commit('setLoading', false);
 					commit('setError', error);
 				})
+		},
+		updateSupplierData({commit}, payload) {
+			commit('setLoading', true);
+			commit('clearError');
+			const updateObj = {};
+			if (payload.name) {
+				updateObj.name = payload.name;
+			}
+			if (payload.url) {
+				updateObj.url = payload.url;
+			}
+			if (payload.description) {
+				updateObj.description = payload.description;
+			}
+			if (payload.location) {
+				updateObj.location = payload.location;
+			}
+			if (payload.date) {
+				updateObj.date = payload.date;
+			}
+			firebase.database().ref('suppliers').child(payload.id).update(updateObj)
+				.then(() => {
+					commit('setLoading', false);
+					commit('updateSupplierData', payload);
+				})
+				.catch((error) => {
+					commit('setLoading', false);
+					commit('setError', error);
+				});
 		},
 		signUpUser({commit}, payload) {
 			commit('setLoading', true);
@@ -204,6 +417,30 @@ export const store = new Vuex.Store({
 			return state.loadedSuppliers.sort((supplierA, supplierB) => {
 				supplierA.lastUpdated > supplierB.lastUpdated;
 			});
+		},
+		loadedTeams(state) {
+			return state.loadedTeams.sort((teamA, teamB) => {
+				teamA.lastUpdated > teamB.lastUpdated;
+			});
+		},
+		loadedTeam(state) {
+			return teamID => {
+				return state.loadedTeams.find(team => {
+					return team.id === teamID;
+				});
+			};
+		},
+		loadedUsers(state) {
+			return state.loadedUsers.sort((userA, userB) => {
+				userA.lastUpdated > userB.lastUpdated;
+			});
+		},
+		loadedUser(state) {
+			return userID => {
+				return state.loadedUsers.find(user => {
+					return user.id === userID;
+				});
+			};
 		},
 		featuredSuppliers(state, getters) {
 			return getters.loadedSuppliers.slice(0, 5);
