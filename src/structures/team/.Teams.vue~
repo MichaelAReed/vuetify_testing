@@ -1,0 +1,100 @@
+<template>
+	<v-container>
+		<v-row v-if="loading">
+			<v-col cols="12" class="text-center">
+				<v-progress-circular
+					indeterminate
+					class="primary--text"
+					:width="7"
+					:size="70"
+				>
+				</v-progress-circular>
+			</v-col>
+		</v-row>
+		<v-row v-if="userIsAdmin && !loading">
+			<v-col cols="6" offset-sm="1" offset-md="2">
+				<v-btn outlined router to="/teams/new" class="primary">
+					Add New Team
+				</v-btn>
+			</v-col>
+		</v-row>
+		<template v-if="!loading">
+			<v-row
+				justify="space-around"
+				v-for="team in teams"
+				:key="team._id"
+				class="mb-2"
+			>
+				<v-col cols="12" sm="10" md="8">
+					<v-card class="secondary">
+						<v-container>
+							<v-row>
+								<v-col cols="5" sm="4" md="3">
+									<v-img
+										class="white--text"
+										height="200px"
+										:src="team.imageURL"
+									>
+									</v-img>
+								</v-col>
+								<v-col cols="7" sm="8" md="9">
+									<v-card-title primary-title>
+										<div>
+											<h3 class="mb-0">
+												{{ team.name }}
+											</h3>
+											<div>{{ team.description }}</div>
+											<div>
+												<v-chip	pill  v-for="user in team.users" class="mt-2 mr-2 ml-2">
+													<v-avatar left>
+													<v-img :src="user.imageURL"></v-img>
+													</v-avatar>
+													{{ user.name }}
+												</v-chip>
+											</div>
+										</div>
+									</v-card-title>
+									<v-card-actions>
+										<v-btn
+											text
+											outlined
+											:to="'/teams/' + team._id"
+										>
+											<v-icon left>mdi-arrow-right</v-icon>
+											View Details
+										</v-btn>
+									</v-card-actions>
+								</v-col>
+							</v-row>
+						</v-container>
+					</v-card>
+				</v-col>
+			</v-row>
+		</template>
+	</v-container>
+</template>
+
+<script>
+export default {
+	computed: {
+		teams() {
+			return this.$store.getters.loadedTeams;
+		},
+		userIsAuthenticated() {
+			return this.$store.getters.user !== null && this.$store.getters.user !== undefined;
+		},
+		userIsAdmin() {
+			if (!this.userIsAuthenticated) {
+				return false;
+			}
+			return true;
+		},
+		loading() {
+			return this.$store.getters.loading;
+		},
+		error() {
+			return this.$store.getters.error;
+		}
+	}
+};
+</script>

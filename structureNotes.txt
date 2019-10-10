@@ -1,0 +1,50 @@
+
+TEAM:
+	Parameters:
+		* Image
+		* URL
+		* Name
+		* Description
+		* Credits
+		* Team members
+		* Locations
+			* Perhaps should only be processed on the fly and not stored.
+		* Status
+			* Should be fixed values (application submitted, DD, accepted, commenced program, alumni)
+	Pages:
+		* Create New Team (page Admin restricted)
+			* Image - Upload
+			* URL - text input short
+			* Name - text input short
+			* Description - text input long
+			* Credits - number input short with default amount (maybe a button to allow changing the value to prevent accidental changes)
+			* Team members - dedicated dialog component for searching and selecting people
+				* Warning and approval for removing them from any previous teams
+		* View Team
+			* Team name
+			* Team Description
+			* Team Image
+			* Add new Team Member (feature Admin restricted)
+				* Allow one person to multiple teams?? where would credits be taken from then?  I'm guessing this would only come up for contractors and we would make a team just for them.
+			* Edit team name (feature team member restricted)
+			* View tool transactions (feature team member restricted)
+			* Delete Team (feature Admin restricted)
+
+USER:
+	Parameters:
+		* Name
+		* Image
+		* Email
+		* wechat
+		* Mattermost?
+			* Generated or inferred from email?  Email can change?
+		* Phone Num
+		* isAdmin
+		* language
+		* Team
+		* Team position
+		* Introduction
+		* Skills
+		* Last seen location
+		* Last seen time
+		* Checked tools

@@ -66,7 +66,7 @@
 					<v-row>
 						<v-col cols="12" sm="6" offset-sm="3">
 							<v-file-input
-								label="Main Image"
+								label="Supplier Main Image"
 								filled
 								show-size
 								chips
@@ -147,11 +147,11 @@ export default {
 	computed: {
 		formIsValid() {
 			return (
-				this.supplierName !== '' &&
-				this.supplierLocation !== '' &&
-				this.supplierLocation !== '' &&
-				this.supplierDescription !== '' &&
-				this.supplierImageURL !== ''
+				this.supplierName.trim() !== '' &&
+				this.supplierURL.trim() !== '' &&
+				this.supplierLocation.trim() !== '' &&
+				this.supplierDescription.trim() !== '' &&
+				this.supplierImageURL.trim() !== ''
 			);
 		},
 		submittableDateTime() {

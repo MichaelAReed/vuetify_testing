@@ -112,6 +112,16 @@ export default {
 						icon: 'mdi-door',
 						title: 'Book a Room',
 						link: '/bookroom'
+					},
+					{
+						icon: 'mdi-account-multiple',
+						title: 'Teams',
+						link: '/teams'
+					},
+					{
+						icon: 'mdi-account',
+						title: 'Users',
+						link: '/users'
 					}
 				]
 			}

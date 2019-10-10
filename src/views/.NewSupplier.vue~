@@ -147,11 +147,11 @@ export default {
 	computed: {
 		formIsValid() {
 			return (
-				this.supplierName !== '' &&
-				this.supplierLocation !== '' &&
-				this.supplierLocation !== '' &&
-				this.supplierDescription !== '' &&
-				this.supplierImageURL !== ''
+				this.supplierName.trim() !== '' &&
+				this.supplierURL.trim() !== '' &&
+				this.supplierLocation.trim() !== '' &&
+				this.supplierDescription.trim() !== '' &&
+				this.supplierImageURL.trim() !== ''
 			);
 		},
 		submittableDateTime() {
@@ -195,7 +195,6 @@ export default {
 				date: this.submittableDateTime
 			};
 			this.$store.dispatch('createSupplier', supplierData);
-			this.$router.push('/suppliers');
 		},
 		onFilePicked(file) {
 			let filename = file.name;

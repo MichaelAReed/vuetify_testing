@@ -65,6 +65,12 @@ export const store = new Vuex.Store({
 		createUser(state, payload) {
 			state.loadedUsers.push(payload);
 		},
+		deleteUser(state, userID) {
+			state.loadedUsers = state.loadedUsers.filter(function(value, index, arr){
+				console.log(value);
+				return value._id !== userID;
+			});
+		},
 		setLoadedUsers(state, payload) {
 			state.loadedUsers = payload;
 		},
@@ -128,6 +134,20 @@ export const store = new Vuex.Store({
 					commit('setLoading', false);
 				});
 		},
+		loadTeamsNode({ commit }) {
+			commit('setLoading', true);
+			fetch('http://localhost:1234/teams/getAll',{method: "get"}).then((response)=>{
+				return response.json();
+			}).then((data)=>{
+				console.log(data);
+				commit('setLoading', false);
+				commit('setLoadedTeams', data);
+			})
+			.catch((error) => {
+				commit('setError', error);
+				commit('setLoading', false);
+			});
+		},
 		loadTeams({ commit }) {
 			commit('setLoading', true);
 			firebase.database().ref('teams').once('value')
@@ -153,6 +173,53 @@ export const store = new Vuex.Store({
 					commit('setError', error);
 					commit('setLoading', false);
 				});
+		},
+		createTeamNode({ commit }, payload) {
+			commit('setLoading', true);
+			commit('clearError');
+			const team = {
+				name: 			payload.name,
+				url: 			payload.url,
+				credits:		payload.credits,
+				description:	payload.description,
+				status:			payload.status,
+			};
+			let imageURL;
+			let returnTeam;
+			fetch(`http://localhost:1234/teams/create`,{
+				method: "POST",
+				body : JSON.stringify(team),
+				headers : {
+					"Content-Type" : "application/json; charset=utf-8"
+				}
+			}).then((response)=>{
+				return response.json();
+			}).then((data)=>{
+				if(data.error) {
+					return Promise.reject(data.error);
+				}
+				returnTeam = data;
+				const filename = payload.image.name;
+				const ext = filename.slice(filename.lastIndexOf('.'));
+
+				var imageData = new FormData();
+				imageData.append('teamImage', payload.image)
+				return fetch(`http://localhost:1234/teams/${returnTeam._id}/uploadImage`,{
+					method : 'post',
+					body : imageData,
+				})
+			.then((response)=>{
+				return response.json();
+			}).then((data)=>{
+				commit('createTeam', data);
+				commit('setLoading', false);
+				router.push('/teams/' + data._id);
+			})
+			}).catch((error) => {
+				console.log(error);
+				commit('setLoading', false);
+				commit('setError', error);
+			});
 		},
 		createTeam({ commit }, payload) {
 			commit('setLoading', true);
@@ -199,6 +266,19 @@ export const store = new Vuex.Store({
 					commit('setError', error);
 				})
 		},
+		loadUsersNode({ commit }) {
+			commit('setLoading', true);
+			fetch('http://localhost:1234/users/getAll',{method: "get"}).then((response)=>{
+				return response.json();
+			}).then((data)=>{
+				commit('setLoading', false);
+				commit('setLoadedUsers', data);
+			})
+			.catch((error) => {
+				commit('setError', error);
+				commit('setLoading', false);
+			});
+		},
 		loadUsers({ commit }) {
 			commit('setLoading', true);
 			firebase.database().ref('users').once('value')
@@ -229,6 +309,60 @@ export const store = new Vuex.Store({
 					commit('setLoading', false);
 				});
 		},
+		createUserNode({ commit }, payload) {
+			commit('setLoading', true);
+			commit('clearError');
+			const user = {
+				name: payload.name,
+				email: payload.email,
+				wechat: payload.wechat,
+				mattermostID: payload.mattermostID,
+				phoneNum: payload.phoneNum,
+				lang: payload.lang,
+				team: payload.team,
+				position: payload.position,
+				introduction: payload.introduction
+			};
+			let imageURL;
+			let returnUser;
+			fetch(`http://localhost:1234/users/create`,{
+				method: "POST",
+				body : JSON.stringify(user),
+				headers : {
+					"Content-Type" : "application/json; charset=utf-8"
+				}
+			}).then((response)=>{
+				return response.json();
+			}).then((data)=>{
+				if(data.error) {
+					return Promise.reject(data.error);
+				}
+				returnUser = data;
+				const filename = payload.image.name;
+				const ext = filename.slice(filename.lastIndexOf('.'));
+
+				var imageData = new FormData()
+				imageData.append('userImage', payload.image)
+				return fetch(`http://localhost:1234/users/${returnUser._id}/uploadImage`,{
+					method : 'post',
+					body : imageData,
+// 					headers : {
+// 						"Content-Type" : "multipart/form-data"
+// 					}
+				})
+			.then((response)=>{
+				return response.json();
+			}).then((data)=>{
+				commit('createUser', data);
+				commit('setLoading', false);
+				router.push('/users/' + data._id);
+			})
+			}).catch((error) => {
+				console.log(error);
+				commit('setLoading', false);
+				commit('setError', error);
+			});
+		},
 		createUser({ commit }, payload) {
 			commit('setLoading', true);
 			commit('clearError');
@@ -243,7 +377,7 @@ export const store = new Vuex.Store({
 				position: payload.position,
 				introduction: payload.introduction,
 				lastUpdated: new Date(),
-			}
+			};
 			let imageURL;
 			let key;
 			firebase.database().ref('users').push(user)
@@ -277,6 +411,24 @@ export const store = new Vuex.Store({
 					commit('setLoading', false);
 					commit('setError', error);
 				})
+		},
+		deleteUser({ commit }, userID) {
+			commit('setLoading', true);
+			commit('clearError');
+			fetch(`http://localhost:1234/users/${userID}/delete`,{
+				method: "DELETE",
+// 				headers : {
+// 					"Content-Type" : "application/json; charset=utf-8"
+// 				}
+			}).then((data)=>{
+				commit('deleteUser', userID);
+				commit('setLoading', false);
+				router.push('/users/');
+			}).catch((error) => {
+				console.log(error);
+				commit('setLoading', false);
+				commit('setError', error);
+			});
 		},
 		createSupplier({ commit, getters }, payload) {
 			commit('setLoading', true);
@@ -426,7 +578,7 @@ export const store = new Vuex.Store({
 		loadedTeam(state) {
 			return teamID => {
 				return state.loadedTeams.find(team => {
-					return team.id === teamID;
+					return team._id === teamID;
 				});
 			};
 		},
@@ -438,7 +590,7 @@ export const store = new Vuex.Store({
 		loadedUser(state) {
 			return userID => {
 				return state.loadedUsers.find(user => {
-					return user.id === userID;
+					return user._id === userID;
 				});
 			};
 		},
@@ -448,7 +600,7 @@ export const store = new Vuex.Store({
 		loadedSupplier(state) {
 			return supplierID => {
 				return state.loadedSuppliers.find(supplier => {
-					return supplier.id === supplierID;
+					return supplier._id === supplierID;
 				});
 			};
 		},

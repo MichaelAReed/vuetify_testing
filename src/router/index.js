@@ -11,6 +11,12 @@ import NewSupplier from '@/views/NewSupplier.vue';
 import Supplier from '@/views/Supplier.vue';
 import Tools from '@/views/Tools.vue';
 import AuthGuard from '@/router/AuthGuard';
+import NewUser from '@/structures/user/NewUser';
+import Users from '@/structures/user/Users';
+import User from '@/structures/user/User';
+import Teams from '@/structures/team/Teams';
+import NewTeam from '@/structures/team/NewTeam';
+import Team from '@/structures/team/Team';
 
 Vue.use(Router);
 
@@ -72,6 +78,45 @@ export default new Router({
 			path: '/tools',
 			name: 'tools',
 			component: Tools
+		},
+		{
+			path: '/users',
+			name: 'Users',
+			component: Users,
+			beforeEnter: AuthGuard
+		},
+		{
+			path: '/users/new/:teamID?',
+			name: 'newUser',
+			props: true,
+			component: NewUser,
+			beforeEnter: AuthGuard
+		},
+		{
+			path: '/users/:id',
+			name: 'user',
+			props: true,
+			component: User,
+			beforeEnter: AuthGuard
+		},
+		{
+			path: '/teams',
+			name: 'Teams',
+			component: Teams,
+			beforeEnter: AuthGuard
+		},
+		{
+			path: '/teams/new',
+			name: 'newTeam',
+			component: NewTeam,
+			beforeEnter: AuthGuard
+		},
+		{
+			path: '/teams/:id',
+			name: 'team',
+			props: true,
+			component: Team,
+			beforeEnter: AuthGuard
 		}
 
 		//     {

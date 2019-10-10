@@ -1,0 +1,166 @@
+<template>
+	<v-container>
+		<v-row v-if="error">
+			<v-col cols="12" sm="6" offset-sm="3">
+				<app-alert @dismissed="onDismissed" :text="error.message"></app-alert>
+			</v-col>
+		</v-row>
+		<v-row>
+			<v-col cols="12" sm="6" offset-sm="3">
+				<h2 class="primary--text">Add a New Team</h2>
+			</v-col>
+		</v-row>
+		<v-row>
+			<v-col cols="12">
+				<form @submit.prevent="onCreateTeam">
+					<v-row class="mb-0 mt-0">
+						<v-col cols="12" sm="6" offset-sm="3">
+							<v-text-field
+								name="TeamName"
+								label="Team Name"
+								id="team-name"
+								v-model="teamName"
+								required
+							>
+							</v-text-field>
+						</v-col>
+					</v-row>
+					<v-row class="mb-0 mt-0">
+						<v-col cols="12" sm="6" offset-sm="3">
+							<v-text-field
+								name="TeamURL"
+								label="Team URL"
+								id="team-url"
+								v-model="teamURL"
+								required
+							>
+							</v-text-field>
+						</v-col>
+					</v-row>
+					<v-row>
+						<v-col cols="12" sm="6" offset-sm="3">
+							<v-textarea
+								name="TeamDescription"
+								label="Team Description"
+								id="team-description"
+								v-model="teamDescription"
+								hint="This should be a description of the company that we can share with partners, investors and other external entities."
+								clearable
+								required
+							>
+							</v-textarea>
+						</v-col>
+					</v-row>
+					<v-row>
+						<v-col cols="12" sm="6" offset-sm="3">
+							<v-file-input
+								label="Team Main Logo/Image"
+								filled
+								show-size
+								chips
+								accept="image/*"
+								prepend-icon="mdi-camera"
+								@change="onFilePicked"
+							></v-file-input>
+						</v-col>
+					</v-row>
+					<v-row v-if="teamImageURL">
+						<v-col cols="12" sm="6" offset-sm="3">
+							<v-card>
+								<v-img :src="teamImageURL" max-height="300" contain></v-img>
+								<v-card-title class="title">{{ teamImageName }}</v-card-title>
+							</v-card>
+						</v-col>
+					</v-row>
+					<v-row>
+						<v-col cols="12" sm="6" offset-sm="3">
+							<v-btn
+								class="primary"
+								:disabled="!formIsValid || loading"
+								:loading="loading"
+								type="submit"
+							>
+								Create Supplier
+							</v-btn>
+						</v-col>
+					</v-row>
+				</form>
+			</v-col>
+		</v-row>
+		<v-row v-if="error">
+			<v-col cols="12" sm="6" offset-sm="3">
+				<app-alert @dismissed="onDismissed" :text="error.message"></app-alert>
+			</v-col>
+		</v-row>
+	</v-container>
+</template>
+
+<script>
+export default {
+	data() {
+		return {
+			teamName: '',
+			teamURL: '',
+			teamDescription: '',
+			teamImageURL: '',
+			teamImage: null,
+			teamImageName: '',
+			date: new Date().toISOString().substr(0, 10),
+			time: new Date()
+		};
+	},
+	computed: {
+		formIsValid() {
+			return (
+				this.teamName.trim() !== '' &&
+				this.teamURL.trim() !== '' &&
+				this.teamDescription.trim() !== '' &&
+				this.teamImageURL.trim() !== ''
+			);
+		},
+		loading() {
+			return this.$store.getters.loading;
+		},
+		error() {
+			return this.$store.getters.error;
+		},
+	},
+	methods: {
+		onCreateTeam() {
+			if (!this.formIsValid) {
+				this.$store.dispatch('setError', 'Invalid input information.');
+				return;
+			}
+			if (!this.teamImage) {
+				this.$store.dispatch('setError', 'You must select an image.');
+				return;
+			}
+			const teamData = {
+				name: this.teamName,
+				url: this.teamURL,
+				description: this.teamDescription,
+				image: this.teamImage
+			};
+			this.$store.dispatch('createTeam', supplierTeam);
+		},
+		onFilePicked(file) {
+			let filename = file.name;
+			if (filename.lastIndexOf('.') <= 0) {
+				return alert('Please add a valid file!');
+			}
+			const fileReader = new FileReader()
+			fileReader.addEventListener('load', () => {
+				this.teamImageURL = fileReader.result;
+				this.teamImageName = filename;
+			})
+			fileReader.readAsDataURL(file);
+			this.supplierImage = file;
+		},
+		// This is a function that you link to the dismissal event of the error popup.
+		// When the error popup is dismissed, this tells the vuex state to just clear the error which makes the popup element also become invisible.
+		onDismissed() {
+			 this.$store.dispatch('clearError');
+		}
+	}
+};
+</script>

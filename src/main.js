@@ -5,6 +5,9 @@ import { store } from './store';
 import vuetify from './plugins/vuetify';
 import dateFilter from './filters/date';
 import alertCmp from './components/Alert';
+import editSupplierDetailsDialog from './components/editSupplierDetailsDialog';
+import editSupplierDateDialog from './components/editSupplierDateDialog';
+import editSupplierTimeDialog from './components/editSupplierTimeDialog';
 
 // Firebase App (the core Firebase SDK) is always required and
 // must be listed before other Firebase SDKs
@@ -14,6 +17,9 @@ import * as firebase from "firebase";
 Vue.config.productionTip = false;
 Vue.filter('date', dateFilter);
 Vue.component('app-alert', alertCmp);
+Vue.component('app-edit-supplier-details-dialog', editSupplierDetailsDialog);
+Vue.component('app-edit-supplier-date-dialog', editSupplierDateDialog);
+Vue.component('app-edit-supplier-time-dialog', editSupplierTimeDialog);
 
 new Vue({
 	router,
@@ -34,6 +40,8 @@ new Vue({
 			}
 		});
 		this.$store.dispatch('loadSuppliers');
+		this.$store.dispatch('loadTeamsNode');
+		this.$store.dispatch('loadUsersNode');
 	}
 }).$mount('#app');
 
