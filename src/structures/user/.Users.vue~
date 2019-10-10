@@ -44,7 +44,7 @@
 												{{ user.name }}
 											</h3>
 											<div>
-												<v-chip	pill class="mt-2">
+												<v-chip	pill class="mt-2" :link="true" :to="'/teams/' + user.team._id">
 													<v-avatar left>
 													<v-img :src="user.team.imageURL"></v-img>
 													</v-avatar>
@@ -94,6 +94,9 @@ export default {
 		error() {
 			return this.$store.getters.error;
 		}
+	},
+	created() {
+		this.$store.dispatch('loadUsers');
 	}
 };
 </script>

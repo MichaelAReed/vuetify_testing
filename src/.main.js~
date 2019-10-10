@@ -40,8 +40,8 @@ new Vue({
 			}
 		});
 		this.$store.dispatch('loadSuppliers');
-		this.$store.dispatch('loadTeams');
-		this.$store.dispatch('loadUsersNode');
+// 		this.$store.dispatch('loadTeams');
+		this.$store.dispatch('loadUsers');
 	}
 }).$mount('#app');
 

@@ -291,7 +291,7 @@ export default {
 				introduction: this.UserIntroduction,
 				image: this.userImage,
 			};
-			this.$store.dispatch('createUserNode', userData);
+			this.$store.dispatch('createUser', userData);
 		},
 		onFilePicked(file) {
 			if (file) {

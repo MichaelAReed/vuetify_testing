@@ -60,7 +60,7 @@
 								<v-card-actions>
 									<v-spacer></v-spacer>
 									<v-btn v-if="userIsAdmin" class="primary" :to="'/users/new/' + team._id">Add a Team Member</v-btn>
-									<v-btn v-if="userIsAdmin" class="primary">Delete Team</v-btn>
+									<v-btn v-if="userIsAdmin" class="primary" @click="onDeleteTeam">Delete Team</v-btn>
 								</v-card-actions>
 							</v-col>
 						</v-row>
@@ -96,6 +96,11 @@ export default {
 			}
 			return true;
 		}
+	},
+	methods: {
+		onDeleteTeam() {
+			this.$store.dispatch('deleteTeam', this.id);
+		},
 	}
 };
 </script>

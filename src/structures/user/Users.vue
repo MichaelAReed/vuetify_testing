@@ -94,6 +94,9 @@ export default {
 		error() {
 			return this.$store.getters.error;
 		}
+	},
+	created() {
+		this.$store.dispatch('loadUsers');
 	}
 };
 </script>

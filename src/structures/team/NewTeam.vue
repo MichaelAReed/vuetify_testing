@@ -216,7 +216,7 @@ export default {
 				credits: this.teamCredits,
 				status: this.teamStatus
 			};
-			this.$store.dispatch('createTeamNode', teamData);
+			this.$store.dispatch('createTeam', teamData);
 		},
 		onFilePicked(file) {
 			if (file) {

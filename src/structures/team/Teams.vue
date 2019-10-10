@@ -1,5 +1,10 @@
 <template>
 	<v-container>
+		<v-row v-if="error">
+			<v-col cols="12" sm="6" offset-sm="3">
+				<app-alert @dismissed="onDismissed" :text="error.message"></app-alert>
+			</v-col>
+		</v-row>
 		<v-row v-if="loading">
 			<v-col cols="12" class="text-center">
 				<v-progress-circular
@@ -94,6 +99,14 @@ export default {
 		},
 		error() {
 			return this.$store.getters.error;
+		}
+	},
+	created() {
+		this.$store.dispatch('loadTeams');
+	},
+	methods: {
+		onDismissed() {
+			 this.$store.dispatch('clearError');
 		}
 	}
 };

@@ -98,7 +98,7 @@
 								<img :src="teamImageURL"></v-img>
 							</v-avatar>
 						</v-col>
-						<v-col cols="11" sm="5" offset-sm="4">
+						<v-col cols="11" sm="5">
 							<v-select
 								name="UserTeam"
 								:items="teamsList"

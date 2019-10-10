@@ -62,8 +62,17 @@ export const store = new Vuex.Store({
 		setLoadedTeams(state, payload) {
 			state.loadedTeams = payload;
 		},
+		deleteTeam(state, teamID) {
+			state.loadedTeams = state.loadedTeams.filter(function(value, index, arr){
+				return value._id !== teamID;
+			});
+		},
 		createUser(state, payload) {
 			state.loadedUsers.push(payload);
+			var index = state.loadedTeams.findIndex((team) => {
+				return (payload.team._id === team._id);
+			});
+			state.loadedTeams[index].users.push(payload);
 		},
 		deleteUser(state, userID) {
 			state.loadedUsers = state.loadedUsers.filter(function(value, index, arr){
@@ -134,12 +143,12 @@ export const store = new Vuex.Store({
 					commit('setLoading', false);
 				});
 		},
-		loadTeamsNode({ commit }) {
+		loadTeams({ commit }) {
 			commit('setLoading', true);
 			fetch('http://localhost:1234/teams/getAll',{method: "get"}).then((response)=>{
 				return response.json();
 			}).then((data)=>{
-				console.log(data);
+				if (data.error) return Promise.reject(data.error);
 				commit('setLoading', false);
 				commit('setLoadedTeams', data);
 			})
@@ -148,33 +157,7 @@ export const store = new Vuex.Store({
 				commit('setLoading', false);
 			});
 		},
-		loadTeams({ commit }) {
-			commit('setLoading', true);
-			firebase.database().ref('teams').once('value')
-				.then((data) => {
-					const teams = [];
-					const obj = data.val();
-					for (let key in obj) {
-						teams.push({
-							id: key,
-							name: obj[key].name,
-							url: obj[key].url,
-							imageURL: obj[key].imageURL,
-							description: obj[key].description,
-							status: obj[key].status,
-							members: [],
-							lastUpdated: obj[key].lastUpdated
-						})
-					}
-					commit('setLoading', false);
-					commit('setLoadedTeams', teams);
-				})
-				.catch((error) => {
-					commit('setError', error);
-					commit('setLoading', false);
-				});
-		},
-		createTeamNode({ commit }, payload) {
+		createTeam({ commit }, payload) {
 			commit('setLoading', true);
 			commit('clearError');
 			const team = {
@@ -195,9 +178,7 @@ export const store = new Vuex.Store({
 			}).then((response)=>{
 				return response.json();
 			}).then((data)=>{
-				if(data.error) {
-					return Promise.reject(data.error);
-				}
+				if (data.error) return Promise.reject(data.error);
 				returnTeam = data;
 				const filename = payload.image.name;
 				const ext = filename.slice(filename.lastIndexOf('.'));
@@ -221,56 +202,31 @@ export const store = new Vuex.Store({
 				commit('setError', error);
 			});
 		},
-		createTeam({ commit }, payload) {
+		deleteTeam({ commit }, teamID) {
 			commit('setLoading', true);
 			commit('clearError');
-			const team = {
-				name: payload.name,
-				url: payload.url,
-				description: payload.description,
-				credits: payload.credits,
-				status: payload.status,
-				lastUpdated: new Date()
-			}
-			let imageURL;
-			let key;
-			firebase.database().ref('teams').push(team)
-				.then((data) => {
-					key = data.key;
-					return key
-				})
-				.then(key => {
-					const filename = payload.image.name;
-					const ext = filename.slice(filename.lastIndexOf('.'));
-					return firebase.storage().ref('teams/' + key + ext).put(payload.image);
-				})
-				.then(fileData => {
-					return fileData.ref.getDownloadURL()
-				})
-				.then(downloadURL => {
-					imageURL = downloadURL;
-					return firebase.database().ref('teams').child(key).update({imageURL: imageURL})
-				})
-				.then(() => {
-					commit('createTeam', {
-						...team,
-						imageURL: imageURL,
-						id: key
-					});
-					commit('setLoading', false);
-					router.push('/teams/'+key);
-				})
-				.catch((error) => {
-					console.log(error);
-					commit('setLoading', false);
-					commit('setError', error);
-				})
+			fetch(`http://localhost:1234/teams/${teamID}/delete`,{
+				method: "DELETE",
+// 				headers : {
+// 					"Content-Type" : "application/json; charset=utf-8"
+// 				}
+			}).then((data)=>{
+				if (data.error) return Promise.reject(data.error);
+				commit('deleteTeam', userID);
+				commit('setLoading', false);
+				router.push('/teams/');
+			}).catch((error) => {
+				console.log(error);
+				commit('setLoading', false);
+				commit('setError', error);
+			});
 		},
-		loadUsersNode({ commit }) {
+		loadUsers({ commit }) {
 			commit('setLoading', true);
 			fetch('http://localhost:1234/users/getAll',{method: "get"}).then((response)=>{
 				return response.json();
 			}).then((data)=>{
+				if (data.error) return Promise.reject(data.error);
 				commit('setLoading', false);
 				commit('setLoadedUsers', data);
 			})
@@ -279,37 +235,7 @@ export const store = new Vuex.Store({
 				commit('setLoading', false);
 			});
 		},
-		loadUsers({ commit }) {
-			commit('setLoading', true);
-			firebase.database().ref('users').once('value')
-				.then((data) => {
-					const users = [];
-					const obj = data.val();
-					for (let key in obj) {
-						users.push({
-							id: key,
-							name: obj[key].name,
-							email: obj[key].email,
-							wechat: obj[key].wechat,
-							mattermostID: obj[key].mattermostID,
-							phoneNum: obj[key].phoneNum,
-							lang: obj[key].lang,
-							team: obj[key].team,
-							position: obj[key].position,
-							introduction: obj[key].introduction,
-							lastUpdated: obj[key].lastUpdated,
-							imageURL: obj[key].imageURL
-						})
-					}
-					commit('setLoading', false);
-					commit('setLoadedUsers', users);
-				})
-				.catch((error) => {
-					commit('setError', error);
-					commit('setLoading', false);
-				});
-		},
-		createUserNode({ commit }, payload) {
+		createUser({ commit }, payload) {
 			commit('setLoading', true);
 			commit('clearError');
 			const user = {
@@ -334,9 +260,7 @@ export const store = new Vuex.Store({
 			}).then((response)=>{
 				return response.json();
 			}).then((data)=>{
-				if(data.error) {
-					return Promise.reject(data.error);
-				}
+				if (data.error) return Promise.reject(data.error);
 				returnUser = data;
 				const filename = payload.image.name;
 				const ext = filename.slice(filename.lastIndexOf('.'));
@@ -363,55 +287,6 @@ export const store = new Vuex.Store({
 				commit('setError', error);
 			});
 		},
-		createUser({ commit }, payload) {
-			commit('setLoading', true);
-			commit('clearError');
-			const user = {
-				name: payload.name,
-				email: payload.email,
-				wechat: payload.wechat,
-				mattermostID: payload.mattermostID,
-				phoneNum: payload.phoneNum,
-				lang: payload.lang,
-				team: payload.team,
-				position: payload.position,
-				introduction: payload.introduction,
-				lastUpdated: new Date(),
-			};
-			let imageURL;
-			let key;
-			firebase.database().ref('users').push(user)
-				.then((data) => {
-					key = data.key;
-					return key
-				})
-				.then(key => {
-					const filename = payload.image.name;
-					const ext = filename.slice(filename.lastIndexOf('.'));
-					return firebase.storage().ref('users/' + key + ext).put(payload.image);
-				})
-				.then(fileData => {
-					return fileData.ref.getDownloadURL()
-				})
-				.then(downloadURL => {
-					imageURL = downloadURL;
-					return firebase.database().ref('users').child(key).update({imageURL: imageURL})
-				})
-				.then(() => {
-					commit('createUser', {
-						...user,
-						imageURL: imageURL,
-						id: key
-					});
-					commit('setLoading', false);
-					router.push('/users/'+key);
-				})
-				.catch((error) => {
-					console.log(error);
-					commit('setLoading', false);
-					commit('setError', error);
-				})
-		},
 		deleteUser({ commit }, userID) {
 			commit('setLoading', true);
 			commit('clearError');
@@ -421,6 +296,7 @@ export const store = new Vuex.Store({
 // 					"Content-Type" : "application/json; charset=utf-8"
 // 				}
 			}).then((data)=>{
+				if (data.error) return Promise.reject(data.error);
 				commit('deleteUser', userID);
 				commit('setLoading', false);
 				router.push('/users/');
