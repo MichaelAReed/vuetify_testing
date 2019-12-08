@@ -2,7 +2,8 @@
 	<v-container>
 		<v-row>
 			<v-col cols="12" sm="6" offset-sm="3">
-				<h2 class="primary--text">Add a New User</h2>
+				<h2 class="primary--text">Welcome {{ mattermostDetails?mattermostDetails.first_name:"" }}! It looks like you're new</h2>
+				<p class="primary--text">please confirm the following details to create your account.</p>
 			</v-col>
 		</v-row>
 		<v-row>
@@ -11,6 +12,7 @@
 					<v-row class="mb-0 mt-0">
 						<v-col cols="12" sm="6" offset-sm="3">
 							<v-text-field
+								v-bind="userNameProps"
 								name="UserName"
 								label="Full Name"
 								id="user-name"
@@ -24,6 +26,7 @@
 					<v-row class="mb-0 mt-0">
 						<v-col cols="12" sm="6" offset-sm="3">
 							<v-text-field
+								v-bind="emailProps"
 								name="UserEmail"
 								label="Company Email Address"
 								id="user-email"
@@ -51,8 +54,9 @@
 					<v-row class="mb-0 mt-0">
 						<v-col cols="12" sm="6" offset-sm="3">
 							<v-text-field
+								v-bind="mattermostProps"
 								name="UserMattermost"
-								label="Mattermost account ID"
+								label="Mattermost account GUID"
 								id="user-mattermost"
 								v-model="userMattermost"
 								:rules="stdRules"
@@ -110,6 +114,7 @@
 					<v-row class="mb-0 mt-0">
 						<v-col cols="12" sm="6" offset-sm="3">
 							<v-text-field
+								v-bind="positionProps"
 								name="UserPosition"
 								label="Team Position"
 								id="user-position"
@@ -154,7 +159,7 @@
 					<v-row v-if="userImageURL">
 						<v-col cols="12" sm="6" offset-sm="3">
 							<v-card>
-								<v-img :src="userImageURL" max-height="300" contain></v-img>
+								<v-img :src="userImageURL" max-height="200" contain></v-img>
 								<v-card-title class="title">{{ userImageName }}</v-card-title>
 							</v-card>
 						</v-col>
@@ -182,21 +187,25 @@ export default {
 	props: ['teamID'],
 	data() {
 		return {
-			userName: 'Katie Chen',
-			userEmail: 'katie@katie.katie',
-			userWechat: 'katie.chen',
-			userMattermost: 'uchu_katie.chen',
-			userPhone: '13924594140',
-			userLang: '中文',
+			userName: '',
+			userEmail: '',
+			userWechat: '',
+			userMattermost: '',
+			userPhone: '',
+			userLang: 'English',
 			userTeam: '',
-			userPosition: 'User Researcher',
-			UserIntroduction: 'Katie is not smelly.',
+			userPosition: '',
+			UserIntroduction: '',
 			userImageURL: '',
 			userImage: null,
 			userImageName: '',
 			teamsList: [],
 			teamsListDict: {},
 			availableLangsList: ['English', '中文'],
+			userNameProps: {},
+			emailProps: {},
+			positionProps: {},
+			mattermostProps: {},
 			stdRules: [
 				value => !!value || 'Cannot be blank.'
 			],
@@ -233,29 +242,65 @@ export default {
 	},
 	computed: {
 		teamImageURL() {
-			return this.$store.getters.loadedTeam(this.teamsListDict[this.userTeam]).imageURL;
+			if (this.userTeam) {
+				return this.$store.getters.loadedTeam(this.teamsListDict[this.userTeam]).imageURL;
+			} else {
+				return "";
+			}
 		},
 		loading() {
 			return this.$store.getters.loading;
+		},
+		mattermostDetails() {
+			return this.$store.getters.mattermostDetails;
 		}
 	},
 	created() {
-		for (let team of this.$store.getters.loadedTeams) {
-			this.teamsList.push(team['name']);
-			this.teamsListDict[team['name']] = team._id;
-			if (this.teamID === team._id) {
-				this.userTeam = team['name'];
+		this.$store.dispatch('getMattermostDetails')
+		.then(() => {
+			if (this.mattermostDetails.first_name && this.mattermostDetails.last_name) {
+				this.userName = this.mattermostDetails.first_name + " " + this.mattermostDetails.last_name;
+				this.userNameProps = {readonly: true};
 			}
-		}
-		if (!this.teamID) {
-			this.userTeam = this.teamsList[0];
-		}
+			if (this.mattermostDetails.email) {
+				this.userEmail = this.mattermostDetails.email;
+				this.emailProps = {readonly: true};
+			}
+			if (this.mattermostDetails.position) {
+				this.userPosition = this.mattermostDetails.position;
+				this.positionProps = {readonly: true};
+			}
+			if (this.mattermostDetails.locale === 'zh-CN') {
+				this.userLang = '中文';
+			}
+			if (this.mattermostDetails.mattermostImgURL) {
+				this.userImageURL = this.mattermostDetails.mattermostImgURL;
+			}
+			if (this.mattermostDetails.id) {
+				this.userMattermost = this.mattermostDetails.id;
+				this.mattermostProps = {readonly: true};
+			}
+			return this.$store.dispatch('loadTeams');
+		})
+		.then(() => {
+			let mattermostTeamName = this.mattermostDetails.username.split("_")[0];
+			for (let team of this.$store.getters.loadedTeams) {
+				this.teamsList.push(team['name']);
+				this.teamsListDict[team['name']] = team._id;
+				if (this.teamID === team._id || (mattermostTeamName.toLowerCase() == team['name'].toLowerCase())) {
+					this.userTeam = team['name'];
+				}
+			}
+			if (!this.teamID && this.userTeam == '') {
+				this.userTeam = this.teamsList[0];
+			}
+		})
 	},
 	methods: {
 		formIsValid() {
 			if (this.$refs.createUserForm && this.$refs.createUserForm.checkValidity) {
-				if (this.$refs.userImage && this.$refs.userImage.validate) {
-					return this.$refs.createUserForm.checkValidity() && this.$refs.userImage.validate();
+				if ((this.$refs.userImage && this.$refs.userImage.validate) || this.mattermostDetails.id) {
+					return this.$refs.createUserForm.checkValidity() && (this.$refs.userImage.validate() || (this.mattermostDetails.id && this.userImageURL));
 				}
 			}
 			return false;
@@ -276,7 +321,7 @@ export default {
 				position: this.userPosition,
 				introduction: this.UserIntroduction
 			};
-			this.$store.dispatch('createUser', {userData: userData, image: this.userImage});
+			this.$store.dispatch('createUser', {userData: userData, image: this.userImage, imageURL: this.userImageURL});
 		},
 		onFilePicked(file) {
 			if (file) {

@@ -90,9 +90,6 @@ export default {
 		},
 		loading() {
 			return this.$store.getters.loading;
-		},
-		error() {
-			return this.$store.getters.error;
 		}
 	},
 	created() {
