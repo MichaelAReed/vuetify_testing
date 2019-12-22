@@ -1,10 +1,5 @@
 <template>
 	<v-container>
-		<v-row v-if="error">
-			<v-col cols="12" sm="6" offset-sm="3">
-				<app-alert @dismissed="onDismissed" :text="error.message"></app-alert>
-			</v-col>
-		</v-row>
 		<v-row>
 			<v-col cols="12" sm="6" offset-sm="3">
 				<h2 class="primary--text">Add a New Team</h2>
@@ -122,11 +117,6 @@
 				</form>
 			</v-col>
 		</v-row>
-		<v-row v-if="error">
-			<v-col cols="12" sm="6" offset-sm="3">
-				<app-alert @dismissed="onDismissed" :text="error.message"></app-alert>
-			</v-col>
-		</v-row>
 	</v-container>
 </template>
 
@@ -188,9 +178,6 @@ export default {
 	computed: {
 		loading() {
 			return this.$store.getters.loading;
-		},
-		error() {
-			return this.$store.getters.error;
 		}
 	},
 	methods: {
@@ -212,11 +199,10 @@ export default {
 				name: this.teamName,
 				url: this.teamURL,
 				description: this.teamDescription,
-				image: this.teamImage,
 				credits: this.teamCredits,
 				status: this.teamStatus
 			};
-			this.$store.dispatch('createTeam', teamData);
+			this.$store.dispatch('createTeam', {teamData: teamData, image: this.teamImage});
 		},
 		onFilePicked(file) {
 			if (file) {
@@ -236,11 +222,6 @@ export default {
 				this.teamImage = null;
 				this.teamImageName = '';
 			}
-		},
-		// This is a function that you link to the dismissal event of the error popup.
-		// When the error popup is dismissed, this tells the vuex state to just clear the error which makes the popup element also become invisible.
-		onDismissed() {
-			 this.$store.dispatch('clearError');
 		}
 	}
 };

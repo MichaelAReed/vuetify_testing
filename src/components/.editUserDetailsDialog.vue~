@@ -1,0 +1,331 @@
+<template>
+	<v-dialog width="350px" persistent v-model="editDialog">
+		<template v-slot:activator="{ on }">
+			<v-btn fab accent v-on="on">
+				<v-icon>mdi-square-edit-outline</v-icon>
+			</v-btn>
+		</template>
+		<v-card>
+			<v-container>
+				<v-row>
+					<v-col cols="12">
+						<v-card-title>Edit User</v-card-title>
+					</v-col>
+				</v-row>
+				<v-divider></v-divider>
+				<form ref="createUserForm" @submit.prevent="confirmChanges">
+					<v-row>
+						<v-col cols="12">
+							<v-card-text>
+								<v-row>
+									<v-text-field
+										name="UserName"
+										label="Full Name"
+										id="user-name"
+										v-model="userName"
+										:rules="stdRules"
+										required
+									>
+									</v-text-field>
+								</v-row>
+								<v-row>
+									<v-text-field
+										name="UserEmail"
+										label="Company Email Address"
+										id="user-email"
+										v-model="userEmail"
+										:rules="emailRules"
+										required
+										type="email"
+									>
+									</v-text-field>
+								</v-row>
+								<v-row>
+									<v-text-field
+										name="UserWechat"
+										label="Wechat account ID"
+										id="user-wechat"
+										v-model="userWechat"
+										:rules="stdRules"
+										required
+									>
+									</v-text-field>
+								</v-row>
+								<v-row>
+									<v-text-field
+										name="UserMattermost"
+										label="Mattermost account ID"
+										id="user-mattermost"
+										v-model="userMattermost"
+										:rules="stdRules"
+										required
+									>
+									</v-text-field>
+								</v-row>
+								<v-row>
+									<v-text-field
+										name="UserPhone"
+										label="Chinese Phone #"
+										id="user-phone"
+										v-model="userPhone"
+										:rules="phoneRules"
+										required
+									>
+									</v-text-field>
+								</v-row>
+								<v-row>
+									<v-select
+										name="UserLang"
+										:items="availableLangsList"
+										label="User Language"
+										id="user-lang"
+										v-model="userLang"
+										:rules="langRules"
+										required
+									></v-select>
+								</v-row>
+								<v-row v-if="loggedInUser.isAdmin">
+									<v-avatar>
+										<img :src="teamImageURL"></v-img>
+									</v-avatar>
+									<v-select
+										name="UserTeam"
+										:items="teamsList"
+										label="User Team"
+										id="userTeam"
+										v-model="userTeam"
+										:rules="teamRules"
+										chips
+										required
+									>
+									</v-select>
+								</v-row>
+								<v-row>
+									<v-text-field
+										name="UserPosition"
+										label="Team Position"
+										id="user-position"
+										v-model="userPosition"
+										:rules="stdRules"
+										required
+									>
+									</v-text-field>
+								</v-row>
+								<v-row>
+									<v-textarea
+										name="UserIntroduction"
+										label="Self Introduction"
+										id="user-introduction"
+										v-model="UserIntroduction"
+										hint="A quick introduction about yourself for other HAXers and staff members to see.  eg: 'grew up in Australia, studied nursing in USA, love playing Ultimate frisbee, always keen to chat about web design'."
+										:rules="stdRules"
+										required
+									>
+									</v-textarea>
+								</v-row>
+								<v-row>
+									<v-file-input
+										label="User Profile Image"
+										filled
+										show-size
+										chips
+										accept="image/*"
+										prepend-icon="mdi-camera"
+										ref="userImage"
+										:rules="imageFileRules"
+										:loading="loading"
+										@change="onFilePicked"
+										required
+									></v-file-input>
+								</v-row>
+								<v-row>
+									<v-card>
+										<v-img :src="userImageURL" max-height="300" contain></v-img>
+										<v-card-title class="title">{{ userImageName }}</v-card-title>
+									</v-card>
+								</v-row>
+							</v-card-text>
+						</v-col>
+					</v-row>
+					<v-divider></v-divider>
+					<v-row>
+						<v-col cols="12">
+							<v-card-actions>
+								<v-btn
+									class="primary"
+									:disabled="!formIsValid || loading"
+									:loading="loading"
+									type="submit"
+								>
+									Confirm changes
+								</v-btn>
+								<v-btn @click="editDialog = false">Cancel</v-btn>
+							</v-card-actions>
+						</v-col>
+					</v-row>
+				</form>
+			</v-container>
+		</v-card>
+	</v-dialog>
+</template>
+
+<script>
+export default {
+	props: ['user'],
+	data() {
+		return {
+			editDialog: false,
+			formIsValid: false,
+
+			userName: this.user.name,
+			userEmail: this.user.email,
+			userWechat: this.user.wechat,
+			userMattermost: this.user.mattermostID,
+			userPhone: this.user.phoneNum,
+			userLang: this.user.lang,
+			userTeam: '',
+			userPosition: this.user.position,
+			UserIntroduction: this.user.introduction,
+			userImageURL: this.user.imageURL,
+			userImage: null,
+			userImageName: '',
+			teamsList: [],
+			teamsListDict: {},
+			availableLangsList: ['English', '中文'],
+			stdRules: [
+				value => !!value || 'Cannot be blank.'
+			],
+			emailRules: [
+				value => {
+					const regexp = /[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?/;
+					return regexp.test(value) || 'Please enter a valid email address.';
+				}
+			],
+			phoneRules: [
+				value => !!value || 'Cannot be blank.'
+			],
+			langRules: [
+				value => (this.availableLangsList.includes(value)) || 'Please choose a language from the list.'
+			],
+			teamRules: [
+				value => (this.teamsList.includes(value)) || "If you can't find the team, please make a new team."
+			],
+			imageFileRules: [
+				value => {
+					if (value) {
+						if (value["type"]) {
+							if (value["name"]) {
+								return (value["type"].split('/')[0] === 'image' && value["name"].lastIndexOf('.') > 0) || 'Requires a valid image file.';
+							}
+							return "File name not found.";
+						}
+						return "File type not found.";
+					}
+					return 'Required.';
+				}
+			]
+		};
+	},
+	computed: {
+		teamImageURL() {
+			return this.$store.getters.loadedTeam(this.teamsListDict[this.userTeam]).imageURL;
+		},
+		loading() {
+			return this.$store.getters.loading;
+		}
+		loggedInUser() {
+			return this.$store.getters.user;
+		}
+	},
+	created() {
+		for (let team of this.$store.getters.loadedTeams) {
+			this.teamsList.push(team['name']);
+			this.teamsListDict[team['name']] = team._id;
+			if (this.user.team._id === team._id) {
+				this.userTeam = team['name'];
+			}
+		}
+		if (this.userTeam === '') {
+			this.userTeam = this.teamsList[0];
+		}
+		if (this.userLang === 'english') {
+			this.userLang = 'English';
+		} else if (this.userLang === 'chinese') {
+			this.userLang = '中文';
+		}
+	},
+
+	watch: {
+		userName: 		'checkFormValidity',
+		userEmail: 		'checkFormValidity',
+		userWechat: 	'checkFormValidity',
+		userMattermost: 'checkFormValidity',
+		userPhone: 		'checkFormValidity',
+		userLang: 		'checkFormValidity',
+		userTeam: 		'checkFormValidity',
+		userPosition: 	'checkFormValidity',
+		UserIntroduction:'checkFormValidity',
+		userImageURL: 	'checkFormValidity',
+	},
+	methods: {
+		checkFormValidity() {
+			if (this.$refs.createUserForm) {
+				if (this.$refs.userImage && this.$refs.userImage.validate) {
+// 					console.log('trying to validate image');F
+					this.formIsValid = (!this.userImage) || (this.$refs.createUserForm.checkValidity() && this.$refs.userImage.validate());
+					return;
+				} else {
+// 					console.log('no image but still valid because edit');
+					this.formIsValid = this.$refs.createUserForm.checkValidity();
+					return;
+				}
+			} else {
+// 				console.log("form itself doesn't exist yet or validate function doesn't.");
+// 				console.log(this.$refs.createUserForm);
+	// 			console.log(this.$refs.createUserForm.checkValidity);
+				this.formIsValid = false;
+				return;
+			}
+		},
+		confirmChanges() {
+			if (!this.formIsValid) {
+				this.$store.dispatch('setError', 'Invalid input information.');
+				return;
+			}
+			const userData = {
+				name: this.userName,
+				email: this.userEmail,
+				wechat: this.userWechat,
+				mattermostID: this.userMattermost,
+				phoneNum: this.userPhone,
+				lang: this.userLang,
+				team: this.teamsListDict[this.userTeam],
+				position: this.userPosition,
+				introduction: this.UserIntroduction
+			};
+			this.$store.dispatch('updateUser', {objectData: userData, image: this.userImage, objectID: this.user._id});
+		},
+		onFilePicked(file) {
+// 			console.log(this.$refs.createUserForm);
+// 			console.log(this.$refs.createUserForm.checkValidity);
+			if (file) {
+				let filename = file.name;
+				if (!this.$refs.userImage.validate()) {
+					return;
+				}
+				const fileReader = new FileReader()
+				fileReader.addEventListener('load', () => {
+					this.userImageURL = fileReader.result;
+					this.userImageName = filename;
+				})
+				fileReader.readAsDataURL(file);
+				this.userImage = file;
+			} else {
+				this.userImageURL = '';
+				this.userImage = null;
+				this.userImageName = '';
+			}
+		}
+	}
+}
+</script>

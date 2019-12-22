@@ -63,6 +63,20 @@
 											View Details
 										</v-btn>
 									</v-card-actions>
+									<v-card v-if="loggedInUser.isAdmin">
+										<v-card-title>
+											Permission Requests
+										</v-card-title>
+										<v-card-text>
+											<app-block-permission-request
+												v-for="permissionRequest in user.permRequests"
+												:key="permissionRequest._id"
+												:permissionRequest="permissionRequest"
+												:requestingUserID="user._id"
+											>
+											</app-block-permission-request>
+										</v-card-text>
+									</v-card>
 								</v-col>
 							</v-row>
 						</v-container>
@@ -90,9 +104,6 @@ export default {
 		},
 		loading() {
 			return this.$store.getters.loading;
-		},
-		error() {
-			return this.$store.getters.error;
 		}
 	},
 	created() {

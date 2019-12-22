@@ -1,0 +1,94 @@
+<template>
+	<v-dialog width="400px" persistent v-model="editDialog">
+		<template v-slot:activator="{ on }">
+			<v-btn v-on="on">
+				Add New Tool of This Type
+			</v-btn>
+		</template>
+		<v-card>
+			<v-container>
+				<v-row>
+					<v-col cols="1">
+						<v-avatar>
+							<img :src="toolType.imageURL"></v-img>
+						</v-avatar>
+					</v-col>
+					<v-col cols="10" offset="1">
+						<h2 class="primary--text">Add a New {{ toolType.name }} Tool</h2>
+					</v-col>
+				</v-row>
+				<v-row>
+					<v-col cols="12">
+						<form ref="createToolForm" @submit.prevent="onCreateTool">
+							<v-row>
+								<v-col cols="12" sm="6" offset-sm="3">
+									<v-select
+										name="ToolStatus"
+										:items="availableToolStatusList"
+										label="Tool Status"
+										id="tool-status"
+										v-model="toolStatus"
+										:rules="statusRules"
+										required
+									></v-select>
+								</v-col>
+							</v-row>
+							<v-row>
+								<v-col cols="12" sm="6" offset-sm="3">
+									<v-btn
+										class="primary"
+										:disabled="!formIsValid() || loading"
+										:loading="loading"
+										type="submit"
+									>
+										Create Tool
+									</v-btn>
+								</v-col>
+							</v-row>
+						</form>
+					</v-col>
+				</v-row>
+			</v-container>
+		</v-card>
+	</v-dialog>
+</template>
+
+<script>
+export default {
+	props: ['toolType'],
+	data() {
+		return {
+			editDialog: 		false,
+			toolStatus:			'',
+			availableToolStatusList: ['ready', 'broken', 'repairing'],
+			statusRules: [
+				value => (this.availableToolStatusList.includes(value)) || 'Please choose a status from the list.'
+			],
+		};
+	},
+	computed: {
+		loading() {
+			return this.$store.getters.loading;
+		}
+	},
+	methods: {
+		formIsValid() {
+			if (this.$refs.createToolForm && this.$refs.createToolForm.checkValidity) {
+				return this.$refs.createToolForm.checkValidity();
+			}
+			return false;
+		},
+		onCreateTool() {
+			if (!this.formIsValid()) {
+				this.$store.dispatch('setError', 'Invalid input information.');
+				return;
+			}
+			const toolData = {
+				toolType: this.toolType,
+				status: this.toolStatus
+			};
+			this.$store.dispatch('createTool', {toolData: toolData});
+		}
+	}
+};
+</script>

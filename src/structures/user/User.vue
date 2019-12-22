@@ -103,8 +103,27 @@
 										>
 										</app-chip-permissionOrBan>
 									</v-card-text>
+								</v-card>
+								<v-card>
+									<v-card-title>
+										Permission Requests
+									</v-card-title>
+									<v-card-text>
+										<app-block-permission-request
+											v-for="permissionRequest in user.permRequests"
+											:key="permissionRequest._id"
+											:permissionRequest="permissionRequest"
+											:requestingUserID="user._id"
+										>
+										</app-block-permission-request>
+									</v-card-text>
 									<v-card-actions>
-										<app-add-user-permission-dialog v-if="loggedInUser.isAdmin" :user="user"></app-add-user-permission-dialog>
+										<app-add-user-permission-dialog
+											v-if="(loggedInUser._id === id) || loggedInUser.isAdmin"
+											:adminView="loggedInUser.isAdmin"
+											:user="user"
+										>
+										</app-add-user-permission-dialog>
 									</v-card-actions>
 								</v-card>
 								<v-card>

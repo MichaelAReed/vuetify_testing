@@ -1,4 +1,5 @@
 export default value => {
+	if (!(value)) return null;
 	const date = new Date(value);
 	return date.toLocaleString(['en-CN'], {
 		hour12: false,

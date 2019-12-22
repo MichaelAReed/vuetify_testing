@@ -11,7 +11,7 @@
 				</v-progress-circular>
 			</v-col>
 		</v-row>
-		<v-row v-if="userIsAdmin && !loading">
+		<v-row v-if="loggedInUser.isAdmin && !loading">
 			<v-col cols="6" offset-sm="1" offset-md="2">
 				<v-btn outlined router to="/users/new" class="primary">
 					Add New User
@@ -63,6 +63,20 @@
 											View Details
 										</v-btn>
 									</v-card-actions>
+									<v-card v-if="loggedInUser.isAdmin">
+										<v-card-title>
+											Permission Requests
+										</v-card-title>
+										<v-card-text>
+											<app-block-permission-request
+												v-for="permissionRequest in user.permRequests"
+												:key="permissionRequest._id"
+												:permissionRequest="permissionRequest"
+												:requestingUserID="user._id"
+											>
+											</app-block-permission-request>
+										</v-card-text>
+									</v-card>
 								</v-col>
 							</v-row>
 						</v-container>
@@ -79,14 +93,8 @@ export default {
 		users() {
 			return this.$store.getters.loadedUsers;
 		},
-		userIsAuthenticated() {
-			return this.$store.getters.user !== null && this.$store.getters.user !== undefined;
-		},
-		userIsAdmin() {
-			if (!this.userIsAuthenticated) {
-				return false;
-			}
-			return true;
+		loggedInUser() {
+			return this.$store.getters.user;
 		},
 		loading() {
 			return this.$store.getters.loading;

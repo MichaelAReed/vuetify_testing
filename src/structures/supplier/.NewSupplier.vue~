@@ -1,10 +1,5 @@
 <template>
 	<v-container>
-		<v-row v-if="error">
-			<v-col cols="12" sm="6" offset-sm="3">
-				<app-alert @dismissed="onDismissed" :text="error.message"></app-alert>
-			</v-col>
-		</v-row>
 		<v-row>
 			<v-col cols="12" sm="6" offset-sm="3">
 				<h2 class="primary--text">Add a New Supplier</h2>
@@ -172,9 +167,6 @@ export default {
 		loading() {
 			return this.$store.getters.loading;
 		},
-		error() {
-			return this.$store.getters.error;
-		},
 	},
 	methods: {
 		onCreateSupplier() {
@@ -187,14 +179,13 @@ export default {
 				return;
 			}
 			const supplierData = {
-				name: this.supplierName,
-				url: this.supplierURL,
-				location: this.supplierLocation,
-				description: this.supplierDescription,
-				image: this.supplierImage,
-				date: this.submittableDateTime
+				name: 			this.supplierName,
+				url: 			this.supplierURL,
+				location: 		this.supplierLocation,
+				description: 	this.supplierDescription,
+				lastUpdated: 	this.submittableDateTime
 			};
-			this.$store.dispatch('createSupplier', supplierData);
+			this.$store.dispatch('createSupplier', {supplierData: supplierData, image: this.supplierImage});
 		},
 		onFilePicked(file) {
 			let filename = file.name;
@@ -208,10 +199,6 @@ export default {
 			})
 			fileReader.readAsDataURL(file);
 			this.supplierImage = file;
-		},
-		onDismissed() {
-			 console.log('Dismissed Alert');
-			 this.$store.dispatch('clearError');
 		}
 	}
 };

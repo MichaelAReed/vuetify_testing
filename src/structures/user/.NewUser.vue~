@@ -1,10 +1,5 @@
 <template>
 	<v-container>
-		<v-row v-if="error">
-			<v-col cols="12" sm="6" offset-sm="3">
-				<app-alert @dismissed="onDismissed" :text="error.message"></app-alert>
-			</v-col>
-		</v-row>
 		<v-row>
 			<v-col cols="12" sm="6" offset-sm="3">
 				<h2 class="primary--text">Add a New User</h2>
@@ -179,11 +174,6 @@
 				</form>
 			</v-col>
 		</v-row>
-		<v-row v-if="error">
-			<v-col cols="12" sm="6" offset-sm="3">
-				<app-alert @dismissed="onDismissed" :text="error.message"></app-alert>
-			</v-col>
-		</v-row>
 	</v-container>
 </template>
 
@@ -243,14 +233,10 @@ export default {
 	},
 	computed: {
 		teamImageURL() {
-			console.log(this.$store.getters.loadedTeam(this.teamsListDict[this.userTeam]).imageURL);
 			return this.$store.getters.loadedTeam(this.teamsListDict[this.userTeam]).imageURL;
 		},
 		loading() {
 			return this.$store.getters.loading;
-		},
-		error() {
-			return this.$store.getters.error;
 		}
 	},
 	created() {
@@ -288,10 +274,9 @@ export default {
 				lang: this.userLang,
 				team: this.teamsListDict[this.userTeam],
 				position: this.userPosition,
-				introduction: this.UserIntroduction,
-				image: this.userImage,
+				introduction: this.UserIntroduction
 			};
-			this.$store.dispatch('createUserNode', userData);
+			this.$store.dispatch('createUser', {userData: userData, image: this.userImage});
 		},
 		onFilePicked(file) {
 			if (file) {
@@ -311,11 +296,6 @@ export default {
 				this.userImage = null;
 				this.userImageName = '';
 			}
-		},
-		// This is a function that you link to the dismissal event of the error popup.
-		// When the error popup is dismissed, this tells the vuex state to just clear the error which makes the popup element also become invisible.
-		onDismissed() {
-			 this.$store.dispatch('clearError');
 		}
 	}
 };

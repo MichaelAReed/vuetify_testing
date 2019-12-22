@@ -2,16 +2,16 @@
 	<v-app dark>
 		<v-navigation-drawer v-model="sideNav" absolute temporary>
 			<v-list>
-				<v-list-item to="/profile">
+				<v-list-item v-if="userIsAuthenticated" :to="{ name: 'user', params: { id: loggedInUser._id }}">
 					<v-list-item-avatar>
 						<v-img
-							src="https://randomuser.me/api/portraits/men/78.jpg"
+							:src="loggedInUser.imageURL"
 						>
 						</v-img>
 					</v-list-item-avatar>
 
 					<v-list-item-content>
-						<v-list-item-title>John Leider</v-list-item-title>
+						<v-list-item-title>{{ loggedInUser.name }}</v-list-item-title>
 					</v-list-item-content>
 				</v-list-item>
 
@@ -43,7 +43,7 @@
 			</v-app-bar-nav-icon>
 			<v-toolbar-title>
 				<router-link to="/" tag="span" style="cursor: pointer">
-					HAX Community Dashboard
+					HAX Console
 				</router-link>
 			</v-toolbar-title>
 			<v-spacer></v-spacer>
@@ -59,13 +59,42 @@
 					{{ item.title }}
 				</v-btn>
 			</v-toolbar-items>
-			<v-toolbar-items class="hidden-xs-only" v-if="userIsAuthenticated" @click="onLogout">
-				<v-btn text>
+			<v-toolbar-items class="hidden-xs-only" v-if="userIsAuthenticated">
+				<v-btn text  @click="onLogout">
 					<v-icon left>mdi-exit-to-app</v-icon>
 					Logout
 				</v-btn>
+				<v-btn
+					text
+					left
+					:to="{ name: 'user', params: { id: loggedInUser._id }}"
+				>
+					<v-avatar>
+						<v-img :src="loggedInUser.imageURL"></v-img>
+					</v-avatar>
+				</v-btn>
+			</v-toolbar-items>
+			<v-toolbar-items class="hidden-xs-only" v-if="!userIsAuthenticated">
+				<v-btn text  @click="onLogin">
+					<v-icon left>mdi-lock-open</v-icon>
+					Login
+				</v-btn>
 			</v-toolbar-items>
 		</v-app-bar>
+		<v-snackbar
+			v-model="snackBarShown"
+			top
+			:timeout=6000
+			color="error"
+			multi-line
+		>
+			<div v-if="error">
+				{{ error.message }}
+			</div>
+			<v-btn color="error" @click="onDismissed">
+				<v-icon>mdi-close-box</v-icon>
+			</v-btn>
+		</v-snackbar>
 		<v-content>
 			<router-view></router-view>
 		</v-content>
@@ -77,36 +106,29 @@ export default {
 	data() {
 		return {
 			sideNav: false,
+			snackBarShown: false
 		};
 	},
 	computed: {
 		userIsAuthenticated() {
-			return (this.$store.getters.user !== null && this.$store.getters.user !== undefined);
+			return (this.loggedInUser !== null && this.loggedInUser !== undefined);
+		},
+		loggedInUser() {
+			return this.$store.getters.user;
+		},
+		error() {
+			let err = this.$store.getters.error;
+			this.snackBarShown = (err) ? true : false;
+			return this.$store.getters.error;
 		},
 		menuItems() {
-			let menuItems = [
-				{
-					icon: 'mdi-lock-open',
-					title: 'Login',
-					link: '/login'
-				}
-			]
+			let menuItems = [];
 			if(this.userIsAuthenticated) {
 				menuItems = [
 					{
 						icon: 'mdi-account-tie',
 						title: 'Suppliers',
 						link: '/suppliers'
-					},
-					{
-						icon: 'mdi-tools',
-						title: 'Tools',
-						link: '/tools'
-					},
-					{
-						icon: 'mdi-account-group',
-						title: 'People',
-						link: '/people'
 					},
 					{
 						icon: 'mdi-door',
@@ -122,6 +144,11 @@ export default {
 						icon: 'mdi-account',
 						title: 'Users',
 						link: '/users'
+					},
+					{
+						icon: 'mdi-tools',
+						title: 'Tools',
+						link: '/toolTypes'
 					}
 				]
 			}
@@ -129,8 +156,14 @@ export default {
 		}
 	},
 	methods: {
+		onLogin() {
+			this.$store.dispatch('loginUser');
+		},
 		onLogout() {
 			this.$store.dispatch('logoutUser');
+		},
+		onDismissed() {
+			 this.$store.dispatch('clearError');
 		}
 	}
 };

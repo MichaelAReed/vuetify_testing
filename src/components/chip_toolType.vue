@@ -1,0 +1,19 @@
+<template>
+	<v-chip
+		pill
+		class="mt-2"
+		:link="true"
+		:to="'/toolTypes/' + toolType._id"
+	>
+		<v-avatar left>
+		<v-img :src="toolType.imageURL"></v-img>
+		</v-avatar>
+		{{ toolType.name }}
+	</v-chip>
+</template>
+
+<script>
+export default {
+	props: ['toolType']
+}
+</script>

@@ -16,29 +16,30 @@
 				<v-card>
 					<v-container>
 						<v-row>
-							<v-col cols="6">
+							<v-col cols="4">
 								<v-img
 									class="white--text mb-10"
 									width="200px"
 									:src="user.imageURL"
 								>
 								</v-img>
-								<v-chip	pill :link="true" :to="'/teams/' + user.team._id">
+								<app-chip-team :team="user.team" :showCredits="true"></app-chip-team>
+								<!--<v-chip	pill :link="true" :to="'/teams/' + user.team._id">
 									<v-avatar left>
-									<v-img :src="user.team.imageURL"></v-img>
+										<v-img :src="user.team.imageURL"></v-img>
 									</v-avatar>
 									{{ user.team.name }}
-								</v-chip>
+								</v-chip>-->
 							</v-col>
-							<v-col  cols="6">
+							<v-col  cols="8">
 								<v-card-title>
-									<h3>{{ user.name }}</h3>
-									<template v-if="userInTeam">
+									<p><h3>{{ user.name }}</h3></p>
+									<template v-if="loggedInUser._id === id || loggedInUser.isAdmin">
 										<v-spacer></v-spacer>
-										userEditor component here
+										<app-edit-user-dialog :user="user"></app-edit-user-dialog>
 									</template>
-									<p>{{ user.introduction }}</p>
 								</v-card-title>
+								<p>{{ user.introduction }}</p>
 							</v-col>
 						</v-row>
 						<v-row>
@@ -53,8 +54,84 @@
 								</v-card-text>
 								<v-card-actions>
 									<v-spacer></v-spacer>
-									<v-btn v-if="userIsAdmin" class="primary">Delete User</v-btn>
+									<v-btn v-if="loggedInUser.isAdmin" class="error" @click="onDeleteUser">Delete User</v-btn>
 								</v-card-actions>
+							</v-col>
+						</v-row>
+						<v-row>
+							<v-col cols="12">
+								<v-card>
+									<v-card-title>
+										Checked Out Tools
+									</v-card-title>
+									<v-card-text>
+										Total value: {{ totalToolsValue }}
+										</br>
+										<app-chip-toolStatus
+											v-for="tool in checkedOutTools"
+											:key="tool._id"
+											:displayName=true
+											:tool="tool"
+										>
+										</app-chip-toolStatus>
+									</v-card-text>
+								</v-card>
+								<v-card>
+									<v-card-title>
+										Bans
+									</v-card-title>
+									<v-card-text>
+										<app-chip-permissionOrBan
+											v-for="ban in user.bans"
+											:key="ban._id"
+											:permissionOrBan="ban"
+											:permissionNotBan="false"
+										>
+										</app-chip-permissionOrBan>
+									</v-card-text>
+								</v-card>
+								<v-card>
+									<v-card-title>
+										Permissions
+									</v-card-title>
+									<v-card-text>
+										<app-chip-permissionOrBan
+											v-for="permission in user.permissions"
+											:key="permission._id"
+											:permissionOrBan="permission"
+											:permissionNotBan="true"
+										>
+										</app-chip-permissionOrBan>
+									</v-card-text>
+								</v-card>
+								<v-card>
+									<v-card-title>
+										Permission Requests
+									</v-card-title>
+									<v-card-text>
+										<app-block-permission-request
+											v-for="permissionRequest in user.permRequests"
+											:key="permissionRequest._id"
+											:permissionRequest="permissionRequest"
+											:requestingUserID="user._id"
+										>
+										</app-block-permission-request>
+									</v-card-text>
+									<v-card-actions>
+										<app-add-user-permission-dialog v-if="(loggedInUser._id === id) || loggedInUser.isAdmin" :adminView="loggedInUser.isAdmin" :user="user"></app-add-user-permission-dialog>
+									</v-card-actions>
+								</v-card>
+								<v-card>
+									<v-card-title>
+										Bookings
+									</v-card-title>
+									<v-card-text>
+										<app-tool-booking-calendar
+											:inputBookings="bookings"
+										>
+										</app-tool-booking-calendar>
+									</v-card-text>
+								</v-card>
 							</v-col>
 						</v-row>
 					</v-container>
@@ -74,26 +151,36 @@ export default {
 		loading() {
 			return this.$store.getters.loading;
 		},
-		userIsAuthenticated() {
-			return this.$store.getters.user !== null && this.$store.getters.user !== undefined;
+		loggedInUser() {
+			return this.$store.getters.user;
 		},
-		userInTeam() {
-			if (!this.userIsAuthenticated) {
-				return false;
-			}
-			return true;
+		checkedOutTools() {
+			return this.$store.getters.loadedToolsCheckedByUser(this.id);
 		},
-		userIsAdmin() {
-			if (!this.userIsAuthenticated) {
-				return false;
+		totalToolsValue() {
+			let sum = 0;
+			for (let i=0; i<this.checkedOutTools.length; i++) {
+				sum += this.checkedOutTools[i].toolType.cost;
 			}
-			return true;
-		}
+			return sum;
+		},
+		bookings() {
+			return this.$store.getters.loadedBookingsOfUser(this.id);
+		},
+	},
+	created() {
+		this.$store.dispatch('loadToolTypes');
+		this.$store.dispatch('loadTools');
+		this.$store.dispatch('loadTeams');
+		this.$store.dispatch('loadUsers');
 	},
 	methods: {
 		onDeleteUser() {
 			this.$store.dispatch('deleteUser', this.id);
 		},
+		onAddPermission() {
+			console.log("Adding Permission");
+		}
 	}
 };
 </script>

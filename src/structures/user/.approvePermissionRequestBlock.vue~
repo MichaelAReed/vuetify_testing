@@ -1,0 +1,28 @@
+<template>
+	<v-chip
+		pill
+		class="mt-2 mr-2 ml-2"
+		:link="true"
+		:to="'/toolTypes/' + permissionOrBan.toolType._id"
+		:color="permissionNotBan? '' : 'error'"
+	>
+		<v-avatar left>
+		<v-img :src="permissionOrBan.toolType.imageURL"></v-img>
+		</v-avatar>
+		{{ permissionOrBan.toolType.name }}
+		<!--{{permissionNotBan ? "" : " - BANNED" }}-->
+		{{ permissionOrBan.expiry ? " | exp: " : "" }}
+		{{ permissionOrBan.expiry | dateNoTime }}
+	</v-chip>
+</template>
+
+<script>
+export default {
+	props: ['permissionOrBan', 'permissionNotBan'],
+	computed: {
+		toolType() {
+			return this.$store.getters.loadedToolType(this.toolTypeID);
+		}
+	},
+}
+</script>

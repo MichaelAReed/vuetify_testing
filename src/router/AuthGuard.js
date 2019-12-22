@@ -4,6 +4,9 @@ export default (to, from, next) => {
 	if (store.getters.user) {
 		next();
 	} else {
-		next('/login');
+// 		console.log("attempting authorisation.");
+		store.dispatch('authorize', next);
+// 		store.dispatch('loginUser');
+// 		next('/login');
 	}
 }

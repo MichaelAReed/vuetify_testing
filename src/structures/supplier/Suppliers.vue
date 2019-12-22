@@ -1,0 +1,64 @@
+<template>
+	<v-container>
+		<v-row>
+			<v-col cols="6" offset-sm="1" offset-md="2">
+				<v-btn outlined router to="/suppliers/new" class="primary">
+					Add New Supplier
+				</v-btn>
+			</v-col>
+		</v-row>
+		<v-row
+			justify="space-around"
+			v-for="supplier in suppliers"
+			:key="supplier.id"
+			class="mb-2"
+		>
+			<v-col cols="12" sm="10" md="8">
+				<v-card class="secondary">
+					<v-container>
+						<v-row>
+							<v-col cols="5" sm="4" md="3">
+								<v-img
+									class="white--text"
+									height="200px"
+									:src="supplier.imageURL"
+								>
+								</v-img>
+							</v-col>
+							<v-col cols="7" sm="8" md="9">
+								<v-card-title primary-title>
+									<div>
+										<h3 class="mb-0">
+											{{ supplier.name }}
+										</h3>
+										<div>{{ supplier.description }}</div>
+									</div>
+								</v-card-title>
+								<v-card-actions>
+									<v-btn
+										text
+										outlined
+										:to="'/suppliers/' + supplier._id"
+									>
+										<v-icon left>mdi-arrow-right</v-icon>
+										View Details
+									</v-btn>
+								</v-card-actions>
+							</v-col>
+						</v-row>
+					</v-container>
+				</v-card>
+			</v-col>
+		</v-row>
+	</v-container>
+</template>
+
+<script>
+export default {
+	computed: {
+		suppliers() {
+			return this.$store.getters.loadedSuppliers;
+		}
+	}
+};
+</script>

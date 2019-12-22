@@ -73,12 +73,20 @@ export default {
 	data() {
 		return {
 			editDialog: false,
-			editableDate: null
+			editedSupplierName: this.supplier.name,
+			editedSupplierURL: this.supplier.url,
+			editedSupplierLocation: this.supplier.location,
+			editedSupplierDescription: this.supplier.description
 		};
 	},
 	computed: {
 		formIsValid() {
-			return true;
+			return (
+				this.editedSupplierName.trim() !== '' &&
+				this.editedSupplierURL.trim() !== '' &&
+				this.editedSupplierLocation.trim() !== '' &&
+				this.editedSupplierDescription.trim() !== ''
+			);
 		}
 	},
 	methods: {
@@ -97,9 +105,6 @@ export default {
 			console.log(supplierData);
 			this.$store.dispatch('updateSupplierData', supplierData);
 		}
-	},
-	created () {
-		this.editableDate = new Date(this.supplier.date);
 	}
 }
 </script>

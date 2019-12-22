@@ -1,10 +1,5 @@
 <template>
 	<v-container>
-		<v-row v-if="error">
-			<v-col cols="12" sm="6" offset-sm="3">
-				<app-alert @dismissed="onDismissed" :text="error.message"></app-alert>
-			</v-col>
-		</v-row>
 		<v-row v-if="loading">
 			<v-col cols="12" class="text-center">
 				<v-progress-circular
@@ -16,7 +11,7 @@
 				</v-progress-circular>
 			</v-col>
 		</v-row>
-		<v-row v-if="userIsAdmin && !loading">
+		<v-row v-if="loggedInUser.isAdmin && !loading">
 			<v-col cols="6" offset-sm="1" offset-md="2">
 				<v-btn outlined router to="/teams/new" class="primary">
 					Add New Team
@@ -50,12 +45,11 @@
 											</h3>
 											<div>{{ team.description }}</div>
 											<div>
-												<v-chip	pill  v-for="user in team.users" class="mt-2 mr-2 ml-2"  :link="true" :to="'/users/' + user._id">
-													<v-avatar left>
-													<v-img :src="user.imageURL"></v-img>
-													</v-avatar>
-													{{ user.name }}
-												</v-chip>
+												<app-chip-user
+													v-for="user in team.users"
+													:user="user"
+												>
+												</app-chip-user>
 											</div>
 										</div>
 									</v-card-title>
@@ -85,29 +79,15 @@ export default {
 		teams() {
 			return this.$store.getters.loadedTeams;
 		},
-		userIsAuthenticated() {
-			return this.$store.getters.user !== null && this.$store.getters.user !== undefined;
-		},
-		userIsAdmin() {
-			if (!this.userIsAuthenticated) {
-				return false;
-			}
-			return true;
+		loggedInUser() {
+			return this.$store.getters.user;
 		},
 		loading() {
 			return this.$store.getters.loading;
 		},
-		error() {
-			return this.$store.getters.error;
-		}
 	},
 	created() {
 		this.$store.dispatch('loadTeams');
-	},
-	methods: {
-		onDismissed() {
-			 this.$store.dispatch('clearError');
-		}
 	}
 };
 </script>

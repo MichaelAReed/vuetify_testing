@@ -16,7 +16,7 @@
 				<v-card>
 					<v-card-title>
 						<h3>{{ supplier.name }}</h3>
-						<template v-if="userIsCreator">
+						<template v-if="userIsAdmin">
 							<v-spacer></v-spacer>
 							<app-edit-supplier-details-dialog :supplier="supplier"></app-edit-supplier-details-dialog>
 						</template>
@@ -35,7 +35,7 @@
 							Profile Creator: {{ supplier.creatorID}}
 						</div>
 						<div class="info--text">
-							Last Reviewed: {{ supplier.date | date}}
+							Last Reviewed: {{ supplier.lastUpdated | date}}
 						</div>
 						<div>
 							<app-edit-supplier-date-dialog
@@ -56,6 +56,7 @@
 					<v-card-actions>
 						<v-spacer></v-spacer>
 						<v-btn class="primary">Provide a Review</v-btn>
+						<v-btn v-if="userIsAdmin" class="primary" @click="onDeleteSupplier">Delete Supplier</v-btn>
 					</v-card-actions>
 				</v-card>
 			</v-col>
@@ -76,12 +77,23 @@ export default {
 		userIsAuthenticated() {
 			return this.$store.getters.user !== null && this.$store.getters.user !== undefined;
 		},
+		userIsAdmin() {
+			if (!this.userIsAuthenticated) {
+				return false;
+			}
+			return true;
+		},
 		userIsCreator() {
 			if (!this.userIsAuthenticated) {
 				return false;
 			}
 			return this.$store.getters.user.id === this.supplier.creatorID;
 		}
+	},
+	methods: {
+		onDeleteSupplier() {
+			this.$store.dispatch('deleteSupplier', this.id);
+		},
 	}
 };
 </script>

@@ -1,0 +1,245 @@
+<template>
+	<v-card>
+		<v-container>
+			<v-row v-if="loading">
+				<v-col cols="12" class="text-center">
+					<v-progress-circular
+						indeterminate
+						class="primary--text"
+						:width="7"
+						:size="70"
+					>
+					</v-progress-circular>
+				</v-col>
+			</v-row>
+			<v-row>
+				<v-divider></v-divider>
+				<v-btn
+					fab
+					outlined
+					small
+					absolute
+					left
+					color="primary"
+					@click="prev"
+				>
+					<v-icon dark>mdi-chevron-left</v-icon>
+				</v-btn>
+				<v-btn
+					fab
+					outlined
+					small
+					absolute
+					right
+					color="primary"
+					@click="next"
+				>
+					<v-icon dark>mdi-chevron-right</v-icon>
+				</v-btn>
+				<br>
+			</v-row>
+			<v-row>
+				<v-card-text>
+					<v-sheet height="400" >
+						<v-calendar
+							ref="calendar"
+							v-model="displayStartDay"
+							:events="bookings"
+							color="primary"
+							type="4day"
+							event-color="primary"
+							@mousedown:time="calendarMouseDown"
+							@contextmenu:time="calendarMouseDown"
+							@mousemove:time="calendarMouseMove"
+							@mouseup:time="calendarMouseUp"
+							@click:event="showEvent"
+						>
+						</v-calendar>
+						<v-menu
+							v-model="selectedOpen"
+							:close-on-content-click="false"
+							:activator="selectedElement"
+							full-width
+							offset-x
+						>
+							<v-card
+								min-width="250px"
+								flat
+							>
+								<v-toolbar
+								:color="selectedEvent.color"
+								>
+									<v-btn
+										v-if="(selectedEvent.user && (loggedInUser._id === selectedEvent.user._id)) || loggedInUser.isAdmin"
+										@click="deleteBooking"
+										icon
+									>
+										<v-icon>mdi-delete-forever</v-icon>
+									</v-btn>
+									<v-toolbar-title v-html="selectedEvent.name"></v-toolbar-title>
+									<v-spacer></v-spacer>
+								</v-toolbar>
+								<v-card-text>
+									<app-chip-user
+										:user="selectedEvent.user"
+									>
+									</app-chip-user>
+									<br>
+									<app-chip-toolStatus
+										:displayName=true
+										:tool="selectedEvent.tool"
+									>
+									</app-chip-toolStatus>
+									<br>
+									<span>Start: {{ selectedEvent.start }}</span>
+									<br>
+									<span>End: {{ selectedEvent.end }}</span>
+								</v-card-text>
+							</v-card>
+						</v-menu>
+					</v-sheet>
+				</v-card-text>
+			</v-row>
+			<v-divider></v-divider>
+			<v-row>
+				<v-col cols="12">
+					<v-card-actions>
+						<v-btn v-if="newStart" @click="onSaveChanges">Save New Booking</v-btn>
+					</v-card-actions>
+				</v-col>
+			</v-row>
+		</v-container>
+	</v-card>
+</template>
+
+<script>
+export default {
+	props: ['inputBookings', 'toolID'],
+	data() {
+		return {
+			editDialog: 		false,
+			displayStartDay: 	new Date().toISOString().substring(0,10),
+			clickedTime:		null,
+			settingEndNotStart: null,
+			newStart:			null,
+			newEnd:				null,
+			trackingEnd:		false,
+			selectedOpen: 		false,
+			selectedEvent: 		{},
+			selectedElement: 	null,
+		};
+	},
+	computed: {
+		loading() {
+			return this.$store.getters.loading;
+		},
+		bookings() {
+			let array = [];
+			if (this.newStart && this.newEnd) array.push({start: this.newStart, end: this.newEnd, name: "New Booking"});
+			array = array.concat(this.inputBookings);
+			return array;
+		},
+		loggedInUser() {
+			return this.$store.getters.user;
+		}
+	},
+	methods: {
+		onSaveChanges() {
+			const bookingData = {
+				start: 			new Date(this.newStart),
+				end: 			new Date(this.newEnd),
+				toolID:			this.toolID
+			};
+			this.$store.dispatch('createBooking', {bookingData: bookingData});
+		},
+		deleteBooking() {
+// 			console.log(this.selectedEvent._id);
+			this.$store.dispatch('deleteBooking', this.selectedEvent._id);
+		},
+		calendarMouseDown(event) {
+			if (this.toolID) {
+// 				this.trackingEnd = true;
+				if (event.minute < 15) event.minute = 0;
+				else if (event.minute < 45) event.minute = 30;
+				else {
+					event.minute = 0;
+					event.hour++;
+				}
+				this.clickedTime = event.year + "-" + event.month + "-" + event.day + " " + event.hour + ":" + event.minute + ":00";
+// 				this.newStart = event.year + "-" + event.month + "-" + event.day + " " + event.hour + ":" + event.minute + ":00";
+	// 			this.newEnd = event.year + "-" + event.month + "-" + event.day + " " + (event.hour+1) + ":" + event.minute + ":00";
+	// 			this.newStart = new Date(event.year, event.month, event.day, event.hour, event.minute, 0, 0)
+			}
+		},
+		calendarMouseMove(event) {
+			if (this.clickedTime && this.toolID) {
+// 			if (this.trackingEnd && this.toolID) {
+				this.trackingEnd = true;
+				this.newStart = this.clickedTime;
+				if (event.minute < 15) event.minute = 0;
+				else if (event.minute < 45) event.minute = 30;
+				else {
+					event.minute = 0;
+					event.hour++;
+				}
+				this.newEnd = event.year + "-" + event.month + "-" + event.day + " " + event.hour + ":" + event.minute + ":00";
+				let startDate = new Date(this.newStart);
+				let endDate = new Date(this.newEnd);
+				if (startDate > endDate) {
+					let swapBuffer = this.newStart;
+					this.newStart = this.newEnd;
+					this.newEnd = swapBuffer;
+				}
+			}
+// 			this.newEnd = new Date(event.year, event.month, event.day, event.hour, event.minute, 0, 0)
+		},
+		calendarMouseUp(event) {
+			if (this.toolID) {
+				if (!this.trackingEnd) {
+					if (event.minute < 15) event.minute = 0;
+					else if (event.minute < 45) event.minute = 30;
+					else {
+						event.minute = 0;
+						event.hour++;
+					}
+					if (!this.settingEndNotStart) {
+						this.newStart = this.clickedTime;
+						this.newEnd = event.year + "-" + event.month + "-" + event.day + " " + (event.hour + 1) + ":" + event.minute + ":00";
+					} else {
+						this.newEnd = this.clickedTime;
+					}
+					this.settingEndNotStart = !this.settingEndNotStart;
+				}
+				this.trackingEnd = false;
+				this.clickedTime = null;
+			}
+		},
+		showEvent ({ nativeEvent, event }) {
+			this.newStart = null;
+			this.newEnd = null;
+			const open = () => {
+				this.selectedEvent = event
+				this.selectedElement = nativeEvent.target
+				setTimeout(() => this.selectedOpen = true, 10)
+			}
+
+			if (this.selectedOpen) {
+			this.selectedOpen = false
+			setTimeout(open, 10)
+			} else {
+			open()
+			}
+			nativeEvent.stopPropagation()
+		},
+		prev() {
+			this.$refs.calendar.prev();
+		},
+		next() {
+			this.$refs.calendar.next();
+		},
+	},
+	mounted () {
+		if (this.$refs.calendar) this.$refs.calendar.scrollToTime('08:00');
+	},
+}
+</script>

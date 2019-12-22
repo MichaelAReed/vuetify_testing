@@ -4,12 +4,7 @@
 			<v-col cols="12" sm="6" offset-sm="3">
 				<h4>Create a New Account</h4>
 			</v-col>
-		</v-row>
-		<v-row v-if="error">
-			<v-col cols="12" sm="6" offset-sm="3">
-				<app-alert @dismissed="onDismissed" :text="error.message"></app-alert>
-			</v-col>
-		</v-row>
+		</v-row>f
 		<v-row>
 			<v-col cols="12" sm="6" offset-sm="3">
 				<v-card>
@@ -87,9 +82,6 @@ export default {
 		user() {
 			return this.$store.getters.user;
 		},
-		error() {
-			return this.$store.getters.error;
-		},
 		loading() {
 			return this.$store.getters.loading;
 		}
@@ -104,10 +96,6 @@ export default {
 	methods: {
 		onSignUp() {
 			this.$store.dispatch('signUpUser', {email: this.email, password: this.password});
-		},
-		onDismissed() {
-			 console.log('Dismissed Alert');
-			 this.$store.dispatch('clearError');
 		}
 	}
 };

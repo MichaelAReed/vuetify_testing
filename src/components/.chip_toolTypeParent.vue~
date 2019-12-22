@@ -1,0 +1,17 @@
+<template>
+	<!--<div v-if="toolType.parent">
+		<v-chip	pill class="mt-2" :link="true" :to="'/toolTypes/' + toolType.parent._id">
+			<v-avatar left>
+			<v-img :src="toolType.parent.imageURL"></v-img>
+			</v-avatar>
+			{{ toolType.parent.name }}
+		</v-chip>
+	</div>-->
+	<app-chip-toolType v-if="toolType.parent" :toolType="toolType.parent"></app-chip-toolType>
+</template>
+
+<script>
+export default {
+	props: ['toolType']
+}
+</script>

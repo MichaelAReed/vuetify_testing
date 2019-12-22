@@ -57,7 +57,7 @@
 								</v-row>
 								<v-row>
 									<v-col cols="12">
-										<v-btn type="submit" :disabled="loading" :loading="loading" @click="loading = 'loading'">
+										<v-btn type="submit" :disabled="loading" :loading="loading">
 											Sign Up
 										</v-btn>
 									</v-col>

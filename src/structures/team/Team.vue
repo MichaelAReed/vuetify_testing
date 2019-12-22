@@ -16,7 +16,7 @@
 				<v-card>
 					<v-container>
 						<v-row>
-							<v-col cols="5">
+							<v-col cols="4">
 								<v-img
 									class="white--text"
 									width="200px"
@@ -34,25 +34,24 @@
 									</v-card-text>
 								</div>
 							</v-col>
-							<v-col  cols="7">
+							<v-col  cols="8">
 								<v-card-title>
 									<h3>{{ team.name }}</h3>
-									<template v-if="userInTeam">
+									<template v-if="userInTeam || loggedInUser.isAdmin">
 										<v-spacer></v-spacer>
 										teamEditor component here
 									</template>
-									<p>{{ team.description }}</p>
 								</v-card-title>
+								<p>{{ team.description }}</p>
 							</v-col>
 						</v-row>
 						<v-row>
 							<v-col align="center">
-								<v-chip	pill  v-for="user in team.users" class="mt-2 mr-2 ml-2" :link="true" :to="'/users/' + user._id">
-									<v-avatar left>
-									<v-img :src="user.imageURL"></v-img>
-									</v-avatar>
-									{{ user.name }}
-								</v-chip>
+								<app-chip-user
+									v-for="user in team.users"
+									:user="user"
+								>
+								</app-chip-user>
 							</v-col>
 						</v-row>
 						<v-row>
@@ -81,11 +80,17 @@ export default {
 		loading() {
 			return this.$store.getters.loading;
 		},
+		loggedInUser() {
+			return this.$store.getters.user;
+		},
 		userIsAuthenticated() {
-			return this.$store.getters.user !== null && this.$store.getters.user !== undefined;
+			return this.loggedInUser !== null && this.loggedInUser !== undefined;
 		},
 		userInTeam() {
 			if (!this.userIsAuthenticated) {
+				return false;
+			}
+			if (this.loggedInUser.team != this.id) {
 				return false;
 			}
 			return true;
@@ -94,8 +99,14 @@ export default {
 			if (!this.userIsAuthenticated) {
 				return false;
 			}
+			if (!(this.loggedInUser.isAdmin)) {
+				return false;
+			}
 			return true;
 		}
+	},
+	created() {
+		this.$store.dispatch('loadTeams');
 	},
 	methods: {
 		onDeleteTeam() {
