@@ -23,7 +23,8 @@
 					</v-card-title>
 					<v-img
 						class="white--text"
-						height="400px"
+						width="200px"
+						height="200px"
 						:src="supplier.imageURL"
 					>
 					</v-img>

@@ -66,6 +66,16 @@
 									</v-card-title>
 									<v-card-text>
 										{{ toolType.description }}
+										<br>
+										<div v-if="onlyRooms">
+											<app-chip-toolStatus
+												v-for="tool in $store.getters.loadedToolsOfType(toolType._id)"
+												:key="tool._id"
+												:displayName=true
+												:tool="tool"
+											>
+											</app-chip-toolStatus>
+										</div>
 									</v-card-text>
 									<v-card-actions>
 										<v-btn
@@ -89,6 +99,7 @@
 
 <script>
 export default {
+	props: ['onlyRooms'],
 	data() {
 		return {
 			includeCategories: 	false,
@@ -97,7 +108,16 @@ export default {
 	},
 	computed: {
 		toolTypes() {
-			return this.$store.getters.loadedToolTypes(this.includeCategories, this.includeTools);
+			if (this.onlyRooms) {
+				let rootMeetingRoomToolType = this.$store.getters.rootMeetingRoomToolType();
+				let returnList = this.getChildrenToolTypes(rootMeetingRoomToolType._id).filter(toolType => {
+					return ((this.includeTools && toolType.isTool) || (this.includeCategories && !toolType.isTool));
+				});
+// 				console.log(returnList);
+				return returnList;
+			} else {
+				return this.$store.getters.loadedToolTypes(this.includeCategories, this.includeTools);
+			}
 		},
 		loggedInUser() {
 			return this.$store.getters.user;
@@ -111,8 +131,15 @@ export default {
 		this.$store.dispatch('loadTools');
 	},
 	methods: {
-		printToolTypes() {
-			console.log(this.toolTypes[0]);
+		getChildrenToolTypes(toolTypeID) {
+			let tempList = this.$store.getters.loadedChildrenToolTypes_tool(toolTypeID);
+			tempList = tempList.concat(this.$store.getters.loadedChildrenToolTypes_category(toolTypeID));
+			var toolType;
+			let returnList = tempList;
+			for (toolType of tempList) {
+				returnList = returnList.concat(this.getChildrenToolTypes(toolType._id));
+			}
+			return returnList
 		}
 	}
 };

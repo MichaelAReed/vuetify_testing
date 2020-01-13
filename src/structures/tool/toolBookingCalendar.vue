@@ -150,7 +150,7 @@ export default {
 				end: 			new Date(this.newEnd),
 				toolID:			this.toolID
 			};
-			this.$store.dispatch('createBooking', {bookingData: bookingData});
+			this.$store.dispatch('createBooking', {bookingData: bookingData, redirect: false});
 		},
 		deleteBooking() {
 // 			console.log(this.selectedEvent._id);

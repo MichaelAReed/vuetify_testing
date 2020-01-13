@@ -20,6 +20,7 @@
 								<v-img
 									class="white--text mb-10"
 									width="200px"
+									height="200px"
 									:src="user.imageURL"
 								>
 								</v-img>
@@ -45,12 +46,56 @@
 						<v-row>
 							<v-col cols="12">
 								<v-card-text>
-									<div class="info--text">
-										Last Updated: {{ user.lastUpdated | date }}
-									</div>
-									<div class="info--text">
-										position: {{ user.position }}
-									</div>
+									<v-container>
+										<v-row class="mt-n6 mb-n6">
+											<v-col cols="5" class="info--text">
+												Last Updated:
+											</v-col>
+											<v-col cols="7">
+												{{ user.lastUpdated | date }}
+											</v-col>
+										</v-row>
+										<v-row class="mt-n6 mb-n6">
+											<v-col cols="5" class="info--text">
+												Position:
+											</v-col>
+											<v-col cols="7">
+												{{ user.position }}
+											</v-col>
+										</v-row>
+										<v-row class="mt-n6 mb-n6">
+											<v-col cols="5" class="info--text">
+												Email:
+											</v-col>
+											<v-col cols="7">
+												{{ user.email }}
+											</v-col>
+										</v-row>
+										<v-row class="mt-n6 mb-n6">
+											<v-col cols="5" class="info--text">
+												Wechat:
+											</v-col>
+											<v-col cols="7">
+												{{ user.wechat }}
+											</v-col>
+										</v-row>
+										<v-row class="mt-n6 mb-n6">
+											<v-col cols="5" class="info--text">
+												Phone #:
+											</v-col>
+											<v-col cols="7">
+												{{ user.phoneNum }}
+											</v-col>
+										</v-row>
+										<v-row class="mt-n6 mb-n6">
+											<v-col cols="5" class="info--text">
+												Lang:
+											</v-col>
+											<v-col cols="7">
+												{{ user.lang }}
+											</v-col>
+										</v-row>
+									</v-container>
 								</v-card-text>
 								<v-card-actions>
 									<v-spacer></v-spacer>
@@ -86,6 +131,8 @@
 											:key="ban._id"
 											:permissionOrBan="ban"
 											:permissionNotBan="false"
+											:userID="user._id"
+											:deletable="true"
 										>
 										</app-chip-permissionOrBan>
 									</v-card-text>
@@ -100,6 +147,8 @@
 											:key="permission._id"
 											:permissionOrBan="permission"
 											:permissionNotBan="true"
+											:userID="user._id"
+											:deletable="true"
 										>
 										</app-chip-permissionOrBan>
 									</v-card-text>
@@ -118,7 +167,12 @@
 										</app-block-permission-request>
 									</v-card-text>
 									<v-card-actions>
-										<app-add-user-permission-dialog v-if="(loggedInUser._id === id) || loggedInUser.isAdmin" :adminView="loggedInUser.isAdmin" :user="user"></app-add-user-permission-dialog>
+										<app-add-user-permission-dialog
+											v-if="(loggedInUser._id === id) || loggedInUser.isAdmin"
+											:adminView="loggedInUser.isAdmin"
+											:user="user"
+										>
+										</app-add-user-permission-dialog>
 									</v-card-actions>
 								</v-card>
 								<v-card>
@@ -132,6 +186,14 @@
 										</app-tool-booking-calendar>
 									</v-card-text>
 								</v-card>
+							</v-col>
+						</v-row>
+						<v-row>
+							<v-col cols="12">
+								<app-block-records-list
+									:records="records"
+								>
+								</app-block-records-list>
 							</v-col>
 						</v-row>
 					</v-container>
@@ -167,6 +229,9 @@ export default {
 		bookings() {
 			return this.$store.getters.loadedBookingsOfUser(this.id);
 		},
+		records() {
+			return this.$store.getters.loadedRecordsOfUser(this.id);
+		}
 	},
 	created() {
 		this.$store.dispatch('loadToolTypes');

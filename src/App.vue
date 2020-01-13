@@ -132,7 +132,7 @@ export default {
 					},
 					{
 						icon: 'mdi-door',
-						title: 'Book a Room',
+						title: 'Rooms',
 						link: '/bookroom'
 					},
 					{
@@ -149,6 +149,11 @@ export default {
 						icon: 'mdi-tools',
 						title: 'Tools',
 						link: '/toolTypes'
+					},
+					{
+						icon: 'mdi-tools',
+						title: 'Lockers',
+						link: '/checkoutDevices'
 					}
 				]
 			}

@@ -253,9 +253,6 @@ export default {
 		},
 		mattermostDetails() {
 			return this.$store.getters.mattermostDetails;
-		},
-		error() {
-			return this.$store.getters.error;
 		}
 	},
 	created() {

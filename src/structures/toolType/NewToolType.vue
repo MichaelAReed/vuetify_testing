@@ -35,21 +35,15 @@
 						</v-col>
 					</v-row>
 					<v-row>
-						<v-col cols="1" sm="1" offset-sm="3">
-							<v-avatar>
-								<img :src="parentToolTypeImageURL"></v-img>
-							</v-avatar>
-						</v-col>
-						<v-col cols="11" sm="5">
-							<v-select
-								name="ToolTypeParentType"
-								:items="parentsList"
-								label="Parent Tool Type"
-								id="tool-type-parent"
-								v-model="toolTypeParentType"
-								:rules="parentRules"
-								required
-							></v-select>
+						<v-col cols="12" sm="6" offset-sm="3">
+							<select-tool-type
+								v-model="parentToolTypeID"
+								label="Select Tool Type"
+								:wantCategories="true"
+								:wantTools="true"
+								:defaultToolTypeID="defaultParentID"
+							>
+							</select-tool-type>
 						</v-col>
 					</v-row>
 					<v-row class="mb-0 mt-0">
@@ -149,29 +143,24 @@
 
 <script>
 export default {
-	props: ['parentID'],
+	props: ['defaultParentID'],
 	data() {
 		return {
 			toolTypeName: 			'',
 			toolTypeChineseName: 	'',
-			toolTypeParentType:		'root',
 			toolTypeCost: 			0,
 			toolTypeIsTool: 		true,
 			toolTypeDescription: 	'',
 			toolTypeInstructionsURL:'',
 			toolTypeImageURL:		'',
 
+			parentToolTypeID: 		null,
+
 			toolTypeImage: 			null,
 			toolTypeImageName: 		'',
 
-			parentsList: 			[],
-			parentsListDict: 		{},
-
 			stdRules: [
 				value => !!value || 'Cannot be blank.'
-			],
-			parentRules: [
-				value => (this.parentsList.includes(value)) || 'Please choose a parent tool type from the list.'
 			],
 			imageFileRules: [
 				value => {
@@ -207,31 +196,12 @@ export default {
 		};
 	},
 	computed: {
-		parentToolTypeImageURL() {
-			if (this.$store.getters.loadedToolType(this.parentsListDict[this.toolTypeParentType])) {
-				return this.$store.getters.loadedToolType(this.parentsListDict[this.toolTypeParentType]).imageURL;
-			} else {
-				return '';
-			}
-		},
 		loading() {
 			return this.$store.getters.loading;
 		},
 		isAToolString() {
 			if (this.toolTypeIsTool) return "Is a Tool";
 			return "Is a Tool Category"
-		}
-	},
-	created() {
-		for (let toolType of this.$store.getters.loadedToolTypes(true, false)) {
-			this.parentsList.push(toolType['name']);
-			this.parentsListDict[toolType['name']] = toolType._id;
-			if (this.parentID === toolType._id) {
-				this.toolTypeParentType = toolType['name'];
-			}
-		}
-		if (!this.parentID) {
-			this.toolTypeParentType = this.parentsList[0];
 		}
 	},
 	methods: {
@@ -251,13 +221,13 @@ export default {
 			const toolTypeData = {
 				name:			this.toolTypeName,
 				chineseName: 	this.toolTypeChineseName,
-				parent:			this.parentsListDict[this.toolTypeParentType],
+				parent:			this.parentToolTypeID,
 				cost: 			this.toolTypeCost,
 				isTool:			this.toolTypeIsTool,
 				description: 	this.toolTypeDescription,
 				instructionsURL:this.toolTypeInstructionsURL
 			};
-			this.$store.dispatch('createToolType', {toolTypeData: toolTypeData, image: this.toolTypeImage});
+			this.$store.dispatch('createToolType', {toolTypeData: toolTypeData, image: this.toolTypeImage, redirect: true});
 		},
 		onFilePicked(file) {
 			if (file) {

@@ -7,22 +7,36 @@
 		:color="permissionNotBan? '' : 'error'"
 	>
 		<v-avatar left>
-		<v-img :src="permissionOrBan.toolType.imageURL"></v-img>
+			<v-img :src="permissionOrBan.toolType.imageURL"></v-img>
 		</v-avatar>
 		{{ permissionOrBan.toolType.name }}
-		<!--{{permissionNotBan ? "" : " - BANNED" }}-->
 		{{ permissionOrBan.expiry ? " | exp: " : "" }}
 		{{ permissionOrBan.expiry | dateNoTime }}
+		<v-btn
+			v-if="loggedInUser.isAdmin && deletable"
+			@click="deletePermission"
+			icon
+		>
+			<v-icon>mdi-delete-forever</v-icon>
+		</v-btn>
 	</v-chip>
 </template>
 
 <script>
 export default {
-	props: ['permissionOrBan', 'permissionNotBan'],
+	props: ['permissionOrBan', 'permissionNotBan', 'userID', 'deletable'],
 	computed: {
 		toolType() {
 			return this.$store.getters.loadedToolType(this.permissionOrBan.toolType._id);
+		},
+		loggedInUser() {
+			return this.$store.getters.user;
 		}
 	},
+	methods: {
+		deletePermission() {
+			this.$store.dispatch('deletePermission', {userID: this.userID, permissionData: {permissionOrBanID: this.permissionOrBan._id}});
+		}
+	}
 }
 </script>

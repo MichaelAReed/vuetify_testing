@@ -20,13 +20,14 @@
 								<v-img
 									class="white--text mb-10"
 									width="200px"
+									height="200px"
 									:src="tool.toolType.imageURL"
 								>
 								</v-img>
 							</v-col>
 							<v-col  cols="8">
 								<v-card-title>
-									<h3>{{ tool.toolType.name + ' #' + tool.nameNum }}</h3>
+									<h3>{{ tool.name }}</h3>
 									<v-spacer></v-spacer>
 									<template v-if="loggedInUser.isAdmin">
 										<v-spacer></v-spacer>
@@ -43,17 +44,17 @@
 									:tool="tool"
 								>
 								</app-chip-toolStatus>
-
+								<br>
 								<app-chip-toolTypePermission
 									:toolTypeID="tool.toolType._id"
 								>
 								</app-chip-toolTypePermission>
-
+								<br>
 								<app-chip-toolCheckedStatus
 									:tool="tool"
 								>
 								</app-chip-toolCheckedStatus>
-
+								<br>
 								<app-chip-toolType
 									:toolType="tool.toolType"
 								>
@@ -61,14 +62,40 @@
 							</v-col>
 							<v-col cols="8">
 								<v-card-text>
-									<div class="info--text">
-										<div>
-											Last Checked Out: {{ tool.lastCheckedOut | date }}
-										</div>
-										<div>
-											Last Maintained: {{ tool.lastMaintained | date }}
-										</div>
-									</div>
+									<v-container>
+										<v-row class="mt-n6 mb-n6">
+											<v-col cols="5" class="info--text">
+												Last Checked Out:
+											</v-col>
+											<v-col cols="7">
+												{{ tool.lastCheckedOut | date }}
+											</v-col>
+										</v-row>
+										<v-row class="mt-n6 mb-n6">
+											<v-col cols="5" class="info--text">
+												Last Maintained:
+											</v-col>
+											<v-col cols="7">
+												{{ tool.lastMaintained | date }}
+											</v-col>
+										</v-row>
+										<v-row class="mt-n6 mb-n6">
+											<v-col cols="5" class="info--text">
+												Cost:
+											</v-col>
+											<v-col cols="7">
+												{{ tool.toolType.cost }} RMB
+											</v-col>
+										</v-row>
+										<v-row class="mt-n6 mb-n6">
+											<v-col cols="5" class="info--text">
+												Wiki Instructions:
+											</v-col>
+											<v-col cols="7">
+												<a :href="tool.toolType.instructionsURL">Link</a>
+											</v-col>
+										</v-row>
+									</v-container>
 								</v-card-text>
 								<v-card-actions>
 									<v-spacer></v-spacer>
@@ -104,6 +131,14 @@
 								</v-card>
 							</v-col>
 						</v-row>
+						<v-row>
+							<v-col cols="12">
+								<app-block-records-list
+									:records="records"
+								>
+								</app-block-records-list>
+							</v-col>
+						</v-row>
 					</v-container>
 				</v-card>
 			</v-col>
@@ -135,6 +170,9 @@ export default {
 		bookings() {
 			return this.$store.getters.loadedBookingsOfTool(this.id);
 		},
+		records() {
+			return this.$store.getters.loadedRecordsOfObject(this.id);
+		}
 	},
 	methods: {
 		attemptCheckout() {

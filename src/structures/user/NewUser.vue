@@ -276,7 +276,7 @@ export default {
 				position: this.userPosition,
 				introduction: this.UserIntroduction
 			};
-			this.$store.dispatch('createUser', {userData: userData, image: this.userImage});
+			this.$store.dispatch('createUser', {userData: userData, image: this.userImage, redirect: true});
 		},
 		onFilePicked(file) {
 			if (file) {

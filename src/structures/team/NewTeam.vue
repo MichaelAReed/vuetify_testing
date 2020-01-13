@@ -202,7 +202,7 @@ export default {
 				credits: this.teamCredits,
 				status: this.teamStatus
 			};
-			this.$store.dispatch('createTeam', {teamData: teamData, image: this.teamImage});
+			this.$store.dispatch('createTeam', {teamData: teamData, image: this.teamImage, redirect: true});
 		},
 		onFilePicked(file) {
 			if (file) {

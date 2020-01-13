@@ -3,6 +3,8 @@
 		<app-chip-permissionOrBan
 			:permissionOrBan="permissionRequest"
 			:permissionNotBan="true"
+			:userID="requestingUserID"
+			:deletable="false"
 		>
 		</app-chip-permissionOrBan>
 		Submitted: {{ permissionRequest.created | date }}

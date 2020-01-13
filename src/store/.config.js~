@@ -1,0 +1,2 @@
+// config.js
+export default const BACKEND_ROOT_URL = 'http://localhost:1234/';

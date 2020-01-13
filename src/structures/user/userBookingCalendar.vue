@@ -8,7 +8,7 @@
 					</v-avatar>
 				</v-col>
 				<v-col cols="10" offset="1">
-					<v-card-title>{{ tool.toolType.name }} # {{ tool.nameNum }} - New Booking </v-card-title>
+					<v-card-title>{{ tool.name }} - New Booking </v-card-title>
 				</v-col>
 			</v-row>
 			<v-row v-if="loading">

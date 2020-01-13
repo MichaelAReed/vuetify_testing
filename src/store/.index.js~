@@ -3,12 +3,15 @@ import Vuex from 'vuex';
 
 import router from '@/router'
 
+import config from '@/store/config';
+// const BACKEND_ROOT_URL = config.BACKEND_ROOT_URL;
+
 // Firebase App (the core Firebase SDK) is always required and
 // must be listed before other Firebase SDKs
 // import * as firebase from "firebase";
 
 // const BACKEND_ROOT_URL = "http://ec2-54-169-48-140.ap-southeast-1.compute.amazonaws.com:1234/";
-const BACKEND_ROOT_URL = "http://localhost:1234/";
+// const BACKEND_ROOT_URL = "http://localhost:1234/";
 // const BACKEND_ROOT_URL = __backendHost;
 
 Vue.use(Vuex);
@@ -61,18 +64,25 @@ export const store = new Vuex.Store({
 				date: new Date()
 			}
 		],
-		mattermostDetails: 	null,
-		loadedTeams: 		[],
-		loadedUsers: 		[],
-		loadedToolTypes: 	[],
-		loadedSuppliers: 	[],
-		loadedTools: 		[],
-		loadedBookings: 	[],
-		user: 				null,
-		loading: 			false,
-		error: 				null
+		mattermostDetails: 		null,
+		loadedRecords:			[],
+		loadedTeams: 			[],
+		loadedUsers: 			[],
+		loadedToolTypes: 		[],
+		loadedSuppliers: 		[],
+		loadedTools: 			[],
+		loadedBookings: 		[],
+		loadedCheckoutDevices: 	[],
+		user: 					null,
+		loading: 				false,
+		error: 					null
 	},
 	mutations: {
+
+		recordsSetLoaded(state, payload) {
+			state.loadedRecords = payload;
+		},
+
 		setMattermostDetails(state, payload) {
 			state.mattermostDetails = payload;
 		},
@@ -195,6 +205,28 @@ export const store = new Vuex.Store({
 			});
 		},
 
+		// CHECKOUT DEVICE MUTATIONS
+		checkoutDeviceCreate(state, payload) {
+			state.loadedCheckoutDevices.push(payload);
+		},
+		checkoutDevicesSetLoaded(state, payload) {
+			state.loadedCheckoutDevices = payload;
+// 			console.log(state.loadedBookings);
+		},
+		checkoutDeviceDelete(state, checkoutDeviceID) {
+			state.loadedCheckoutDevices = state.loadedCheckoutDevices.filter(function(value, index, arr){
+				return value._id !== checkoutDeviceID;
+			});
+		},
+		checkoutDeviceSetToolReceptacles(state, payload) {
+			var index = findWithAttr(state.loadedCheckoutDevices, "_id", payload._id);
+// 			console.log(payload.data);
+			if (index !== -1) {
+				state.loadedCheckoutDevices[index].toolReceptacles = payload.data;
+			}
+// 			console.log(state.loadedUsers[index]);
+		},
+
 		// LOGIN MUTATIONS
 		setUser(state, payload) {
 			state.user = payload;
@@ -230,7 +262,7 @@ export const store = new Vuex.Store({
 			commit('setLoading', true);
 			commit('clearError');
 
-			fetch(BACKEND_ROOT_URL + `users/${payload.userID}/requestPermission`,{
+			fetch(config.BACKEND_ROOT_URL + `users/${payload.userID}/requestPermission`,{
 				method: "PUT",
 				credentials: 'include',
 				body : JSON.stringify(payload.permissionData),
@@ -248,7 +280,9 @@ export const store = new Vuex.Store({
 // 				console.log(data.permissions);
 // 				commit('userSetPermissions', {id: data._id, data: data.permissions});
 // 				router.push('/users/' + data._id);
+				dispatch('loadRecords');
 				dispatch('loadUsers');
+				dispatch('loadToolTypes');
 			})
 			.catch((error) => {
 				commit('setError', error);
@@ -259,7 +293,7 @@ export const store = new Vuex.Store({
 			commit('setLoading', true);
 			commit('clearError');
 
-			fetch(BACKEND_ROOT_URL + `users/${payload.userID}/deletePermissionRequest`,{
+			fetch(config.BACKEND_ROOT_URL + `users/${payload.userID}/deletePermissionRequest`,{
 				method: "DELETE",
 				credentials: 'include',
 				body : JSON.stringify(payload.permissionData),
@@ -277,7 +311,156 @@ export const store = new Vuex.Store({
 // 				console.log(data.permissions);
 // 				commit('userSetPermissions', {id: data._id, data: data.permissions});
 // 				router.push('/users/' + data._id);
+				dispatch('loadRecords');
 				dispatch('loadUsers');
+			})
+			.catch((error) => {
+				commit('setError', error);
+				commit('setLoading', false);
+			});
+		},
+		deletePermission({ commit, dispatch }, payload) {
+			commit('setLoading', true);
+			commit('clearError');
+
+			fetch(config.BACKEND_ROOT_URL + `users/${payload.userID}/deletePermission`,{
+				method: "DELETE",
+				credentials: 'include',
+				body : JSON.stringify(payload.permissionData),
+				headers : {
+					"Content-Type" : "application/json; charset=utf-8"
+				}
+			})
+			.then((response)=>{
+				return response.json();
+			}).then((data)=>{
+				if (data.error) return Promise.reject(data.error);
+				commit('setLoading', false);
+				// TODO: change this to a single edit commit
+// 				commit('userAddPermission', {id: data._id, permissionData: payload.permissionData});
+// 				console.log(data.permissions);
+// 				commit('userSetPermissions', {id: data._id, data: data.permissions});
+// 				router.push('/users/' + data._id);
+				dispatch('loadRecords');
+				dispatch('loadUsers');
+				router.push(`/users/${payload.userID}`);
+			})
+			.catch((error) => {
+				commit('setError', error);
+				commit('setLoading', false);
+			});
+		},
+		addToolReceptacleToCheckoutDevice({ commit, dispatch }, payload) {
+			commit('setLoading', true);
+			commit('clearError');
+
+			fetch(config.BACKEND_ROOT_URL + `checkoutDevices/${payload.checkoutDeviceID}/addToolReceptacle`,{
+				method: "PUT",
+				credentials: 'include',
+				body : JSON.stringify(payload.toolReceptacleData),
+				headers : {
+					"Content-Type" : "application/json; charset=utf-8"
+				}
+			})
+			.then((response)=>{
+				return response.json();
+			}).then((data)=>{
+				if (data.error) return Promise.reject(data.error);
+				commit('setLoading', false);
+				// TODO: change this to a single edit commit
+// 				commit('userAddPermission', {id: data._id, permissionData: payload.permissionData});
+// 				console.log(data.permissions);
+				commit('checkoutDeviceSetToolReceptacles', {id: data._id, data: data.toolReceptacles});
+// 				router.push('/users/' + data._id);
+				dispatch('loadCheckoutDevices');
+			})
+			.catch((error) => {
+				commit('setError', error);
+				commit('setLoading', false);
+			});
+		},
+		deleteToolReceptacleFromCheckoutDevice({ commit, dispatch }, payload) {
+			commit('setLoading', true);
+			commit('clearError');
+
+			fetch(config.BACKEND_ROOT_URL + `checkoutDevices/${payload.checkoutDeviceID}/deleteToolReceptacle`,{
+				method: "DELETE",
+				credentials: 'include',
+				body : JSON.stringify(payload.toolReceptacleData),
+				headers : {
+					"Content-Type" : "application/json; charset=utf-8"
+				}
+			})
+			.then((response)=>{
+				return response.json();
+			}).then((data)=>{
+				if (data.error) return Promise.reject(data.error);
+				commit('setLoading', false);
+				// TODO: change this to a single edit commit
+// 				commit('userAddPermission', {id: data._id, permissionData: payload.permissionData});
+// 				console.log(data.permissions);
+				commit('checkoutDeviceSetToolReceptacles', {id: data._id, data: data.toolReceptacles});
+// 				router.push('/users/' + data._id);
+				dispatch('loadCheckoutDevices');
+			})
+			.catch((error) => {
+				commit('setError', error);
+				commit('setLoading', false);
+			});
+		},
+		assignToolToReceptacle({ commit, dispatch }, payload) {
+			commit('setLoading', true);
+			commit('clearError');
+
+			fetch(config.BACKEND_ROOT_URL + `checkoutDevices/${payload.checkoutDeviceID}/assignToolToReceptacle/${payload.toolReceptacleID}`,{
+				method: "PUT",
+				credentials: 'include',
+				body : JSON.stringify(payload.assignmentData),
+				headers : {
+					"Content-Type" : "application/json; charset=utf-8"
+				}
+			})
+			.then((response)=>{
+				return response.json();
+			}).then((data)=>{
+				if (data.error) return Promise.reject(data.error);
+				console.log(data);
+				commit('setLoading', false);
+				// TODO: change this to a single edit commit
+// 				commit('userAddPermission', {id: data._id, permissionData: payload.permissionData});
+// 				console.log(data.permissions);
+				commit('checkoutDeviceSetToolReceptacles', {id: data._id, data: data.toolReceptacles});
+// 				router.push('/users/' + data._id);
+				dispatch('loadCheckoutDevices');
+			})
+			.catch((error) => {
+				commit('setError', error);
+				commit('setLoading', false);
+			});
+		},
+		deassignToolToReceptacle({ commit, dispatch }, payload) {
+			commit('setLoading', true);
+			commit('clearError');
+
+			fetch(config.BACKEND_ROOT_URL + `checkoutDevices/${payload.checkoutDeviceID}/deassignToolToReceptacle/${payload.toolReceptacleID}`,{
+				method: "DELETE",
+				credentials: 'include',
+				body : JSON.stringify(payload.assignmentData),
+				headers : {
+					"Content-Type" : "application/json; charset=utf-8"
+				}
+			})
+			.then((response)=>{
+				return response.json();
+			}).then((data)=>{
+				if (data.error) return Promise.reject(data.error);
+				commit('setLoading', false);
+				// TODO: change this to a single edit commit
+// 				commit('userAddPermission', {id: data._id, permissionData: payload.permissionData});
+// 				console.log(data.permissions);
+				commit('checkoutDeviceSetToolReceptacles', {id: data._id, data: data.toolReceptacles});
+// 				router.push('/users/' + data._id);
+				dispatch('loadCheckoutDevices');
 			})
 			.catch((error) => {
 				commit('setError', error);
@@ -288,7 +471,7 @@ export const store = new Vuex.Store({
 			commit('setLoading', true);
 			commit('clearError');
 
-			fetch(BACKEND_ROOT_URL + `users/${payload.userID}/addPermission`,{
+			fetch(config.BACKEND_ROOT_URL + `users/${payload.userID}/addPermission`,{
 				method: "PUT",
 				credentials: 'include',
 				body : JSON.stringify(payload.permissionData),
@@ -306,6 +489,7 @@ export const store = new Vuex.Store({
 // 				console.log(data.permissions);
 				commit('userSetPermissions', {id: data._id, data: data.permissions});
 // 				router.push('/users/' + data._id);
+				dispatch('loadRecords');
 				dispatch('loadUsers');
 			})
 			.catch((error) => {
@@ -314,30 +498,34 @@ export const store = new Vuex.Store({
 			});
 		},
 		createSupplier({ commit, dispatch }, payload) {
-			return dispatch('createObject', {typeString: 'supplier', image: payload.image, objectData: payload.supplierData});
+			return dispatch('createObject', {typeString: 'supplier', image: payload.image, objectData: payload.supplierData, redirect: payload.redirect});
 		},
 		createTeam({ commit, dispatch }, payload) {
-			return dispatch('createObject', {typeString: 'team', image: payload.image, objectData: payload.teamData});
+			return dispatch('createObject', {typeString: 'team', image: payload.image, objectData: payload.teamData, redirect: payload.redirect});
 		},
 		createUser({ commit, dispatch }, payload) {
-			return dispatch('createObject', {typeString: 'user', image: payload.image, objectData: payload.userData});
+			return dispatch('createObject', {typeString: 'user', image: payload.image, objectData: payload.userData, redirect: payload.redirect, dispatchCmd: 'loginUser'});
 		},
 		createToolType({ commit, dispatch }, payload) {
-			return dispatch('createObject', {typeString: 'toolType', image: payload.image, objectData: payload.toolTypeData});
+			return dispatch('createObject', {typeString: 'toolType', image: payload.image, objectData: payload.toolTypeData, redirect: payload.redirect});
 		},
 		createTool({ commit, dispatch }, payload) {
-			return dispatch('createObject', {typeString: 'tool', objectData: payload.toolData});
+			return dispatch('createObject', {typeString: 'tool', objectData: payload.toolData, redirect: payload.redirect});
 		},
 		createBooking({ commit, dispatch }, payload) {
-			return dispatch('createObject', {typeString: 'booking', objectData: payload.bookingData});
+			return dispatch('createObject', {typeString: 'booking', objectData: payload.bookingData, redirect: payload.redirect, dispatchCmd: 'loadBookings'});
+		},
+		createCheckoutDevice({ commit, dispatch }, payload) {
+			return dispatch('createObject', {typeString: 'checkoutDevice', image: payload.image, objectData: payload.checkoutDeviceData, redirect: payload.redirect});
 		},
 		createObject({ commit, dispatch }, payload) {
+// 			console.log(payload);
 			commit('setLoading', true);
 			commit('clearError');
 // 			let imageURL;
 			let returnObjectData;
 
-			fetch(BACKEND_ROOT_URL + payload.typeString + `s/create`,{
+			fetch(config.BACKEND_ROOT_URL + payload.typeString + `s/create`,{
 				method: "POST",
 				credentials: 'include',
 				body : JSON.stringify(payload.objectData),
@@ -352,13 +540,17 @@ export const store = new Vuex.Store({
 				if (data.error) return Promise.reject(data.error, data);
 				returnObjectData = data;
 // 				if (!payload.image) return Promise.reject(new Error("No Image."));
-				if (!payload.image) return data;
+				if (!payload.image) {
+					console.log("no image to upload");
+					return data;
+				}
+				console.log("uploading image");
 				const filename = payload.image.name;
 				const ext = filename.slice(filename.lastIndexOf('.'));
 
 				var imageData = new FormData();
 				imageData.append(payload.typeString + 'Image', payload.image);
-				return fetch(BACKEND_ROOT_URL + payload.typeString + `s/${returnObjectData._id}/uploadImage`,{
+				return fetch(config.BACKEND_ROOT_URL + payload.typeString + `s/${returnObjectData._id}/uploadImage`,{
 					method : 'post',
 					credentials: 'include',
 					body : imageData,
@@ -375,11 +567,11 @@ export const store = new Vuex.Store({
 				if (data.error) return Promise.reject(data.error, data);
 				commit(payload.typeString + 'Create', data);
 				commit('setLoading', false);
-				if (payload.typeString === 'user') {
-					dispatch('loginUser');
-				} else if (payload.typeString === 'booking'){
-					dispatch('loadBookings');
-				} else {
+				dispatch('loadRecords');
+				if (payload.dispatchCmd) {
+					dispatch(payload.dispatchCmd);
+				}
+				if (payload.redirect) {
 					router.push('/' + payload.typeString + 's/' + data._id)
 					.catch((err) => {
 						console.log(`error is ${err}`);
@@ -419,10 +611,13 @@ export const store = new Vuex.Store({
 		deleteTeam({ commit, dispatch }, teamID) {
 			return dispatch('deleteObject', {typeString: 'team', objectID: teamID});
 		},
+		deleteCheckoutDevice({ commit, dispatch }, checkoutDeviceID) {
+			return dispatch('deleteObject', {typeString: 'checkoutDevice', objectID: checkoutDeviceID});
+		},
 		deleteObject({commit, dispatch}, payload) {
 			commit('setLoading', true);
 			commit('clearError');
-			fetch(BACKEND_ROOT_URL + payload.typeString + `s/${payload.objectID}/delete`,{
+			fetch(config.BACKEND_ROOT_URL + payload.typeString + `s/${payload.objectID}/delete`,{
 				method: "DELETE",
 				credentials: 'include',
 // 				headers : {
@@ -437,6 +632,7 @@ export const store = new Vuex.Store({
 				if (data.error) return Promise.reject(data.error);
 				commit(payload.typeString + 'Delete', payload.objectID);
 				commit('setLoading', false);
+				dispatch('loadRecords');
 				if (payload.typeString === 'booking'){
 					dispatch('loadBookings')
 				} else {
@@ -450,13 +646,13 @@ export const store = new Vuex.Store({
 		updateUser({ commit, dispatch }, payload) {
 			return dispatch('updateObject', {typeString: 'user', objectID: payload.objectID, objectData: payload.objectData, image: payload.image});
 		},
-		updateObject({commit}, payload) {
+		updateObject({commit, dispatch}, payload) {
 			commit('setLoading', true);
 			commit('clearError');
-			console.log(`updating object with:`);
-			console.log(payload.objectData);
-			console.log(BACKEND_ROOT_URL + payload.typeString + `s/${payload.objectID}/update`);
-			fetch(BACKEND_ROOT_URL + payload.typeString + `s/${payload.objectID}/update`,{
+// 			console.log(`updating object with:`);
+// 			console.log(payload.objectData);
+// 			console.log(config.BACKEND_ROOT_URL + payload.typeString + `s/${payload.objectID}/update`);
+			fetch(config.BACKEND_ROOT_URL + payload.typeString + `s/${payload.objectID}/update`,{
 				method: "PUT",
 				credentials: 'include',
 				body : JSON.stringify(payload.objectData),
@@ -476,7 +672,7 @@ export const store = new Vuex.Store({
 
 				var imageData = new FormData();
 				imageData.append(payload.typeString + 'Image', payload.image);
-				return fetch(BACKEND_ROOT_URL + payload.typeString + `s/${data._id}/uploadImage`,{
+				return fetch(config.BACKEND_ROOT_URL + payload.typeString + `s/${data._id}/uploadImage`,{
 					method : 'post',
 					credentials: 'include',
 					body : imageData,
@@ -493,6 +689,7 @@ export const store = new Vuex.Store({
 				if (data.error) return Promise.reject(data.error, data);
 				commit(payload.typeString + 'Edit', data);
 				commit('setLoading', false);
+				dispatch('loadRecords');
 				router.push('/' + payload.typeString + 's/')
 			})
 			.catch((error) => {
@@ -500,6 +697,9 @@ export const store = new Vuex.Store({
 				commit('setLoading', false);
 				commit('setError', error);
 			});
+		},
+		loadRecords({ commit, dispatch }) {
+			return dispatch('loadObjects', {typeString: 'record'});
 		},
 		loadSuppliers({ commit, dispatch }) {
 			return dispatch('loadObjects', {typeString: 'supplier'});
@@ -519,14 +719,17 @@ export const store = new Vuex.Store({
 		loadTeams({ commit, dispatch }) {
 			return dispatch('loadObjects', {typeString: 'team'});
 		},
+		loadCheckoutDevices({ commit, dispatch }) {
+			return dispatch('loadObjects', {typeString: 'checkoutDevice'});
+		},
 		loadEverything({commit, dispatch}) {
-			let typeStrings = ['supplier', 'toolType', 'tool', 'booking', 'user', 'team']
+			let typeStrings = ['record', 'supplier', 'toolType', 'tool', 'booking', 'user', 'team', 'checkoutDevice']
 			return typeStrings.map((typeString) => {return dispatch('loadObjects', {typeString: typeString})});
 		},
 		loadObjects({commit}, payload) {
 			return new Promise((resolve, reject) => {
 				commit('setLoading', true);
-				fetch(BACKEND_ROOT_URL + payload.typeString + 's/getAll',{
+				fetch(config.BACKEND_ROOT_URL + payload.typeString + 's/getAll',{
 					method: "get",
 					credentials: 'include'
 				})
@@ -552,9 +755,9 @@ export const store = new Vuex.Store({
 			return new Promise((resolve, reject) => {
 				commit('setLoading', true);
 				commit('clearError');
-				console.log("attempting to checkout");
-				console.log(payload);
-				fetch(BACKEND_ROOT_URL + `tools/${payload.objectID}/${payload.checkoutNotReturn ? 'checkout' : 'return'}`,{
+// 				console.log("attempting to checkout");
+// 				console.log(payload);
+				fetch(config.BACKEND_ROOT_URL + `tools/${payload.objectID}/${payload.checkoutNotReturn ? 'checkout' : 'return'}`,{
 					method: "post",
 					credentials: 'include'
 				})
@@ -566,6 +769,7 @@ export const store = new Vuex.Store({
 // 					console.log(data);
 					commit('setLoading', false);
 					commit('toolEdit', data);
+					dispatch('loadRecords');
 					router.push('/users/' + getters.user._id)
 					resolve();
 				})
@@ -581,13 +785,13 @@ export const store = new Vuex.Store({
 			commit('clearError');
 			console.log("attempting to login");
 			// TODO: make this reference to the backendHost general
-			window.location.href = `${BACKEND_ROOT_URL}login`;
+			window.location.href = `${config.BACKEND_ROOT_URL}login`;
 		},
 		getMattermostDetails({commit}) {
 			return new Promise((resolve, reject) => {
 				commit('setLoading', true);
 				commit('clearError');
-				fetch(BACKEND_ROOT_URL + 'getMattermostDetails', {
+				fetch(config.BACKEND_ROOT_URL + 'getMattermostDetails', {
 					method: "get",
 					credentials: 'include'
 				})
@@ -612,11 +816,11 @@ export const store = new Vuex.Store({
 		},
 		authorize({commit, dispatch}, next) {
 			console.log("authorizing...");
-			console.log(BACKEND_ROOT_URL);
+			console.log(config.BACKEND_ROOT_URL);
 			commit('setLoading', true);
 			commit('clearError');
 // 			console.log("starting auth");
-			fetch(BACKEND_ROOT_URL + 'authorize', {
+			fetch(config.BACKEND_ROOT_URL + 'authorize', {
 				method: "get",
 				credentials: 'include'
 			})
@@ -656,7 +860,7 @@ export const store = new Vuex.Store({
 		logoutUser({commit}) {
 			commit('setLoading', true);
 			commit('clearError');
-			fetch(BACKEND_ROOT_URL + 'logout', {
+			fetch(config.BACKEND_ROOT_URL + 'logout', {
 				method: "get",
 				credentials: 'include'
 			})
@@ -687,6 +891,21 @@ export const store = new Vuex.Store({
 		}
 	},
 	getters: {
+
+		loadedRecordsOfObject(state) {
+			return objectID => {
+				return state.loadedRecords.filter(record => {
+					return (record.interactedID === objectID || record.interactedParentID === objectID);
+				});
+			};
+		},
+		loadedRecordsOfUser(state) {
+			return userID => {
+				return state.loadedRecords.filter(record => {
+					return (record.interactorID === userID || record.interactedID === userID || record.interactedParentID === userID);
+				});
+			};
+		},
 
 		mattermostDetails(state) {
 			return state.mattermostDetails;
@@ -739,7 +958,21 @@ export const store = new Vuex.Store({
 				} else {
 					return [];
 				}
-			}
+			};
+		},
+		rootMeetingRoomToolType(state) {
+			return () => {
+				return state.loadedToolTypes.filter(toolType => {
+					return toolType.name === "Meeting Rooms";
+				})[0];
+			};
+		},
+		rootRoomToolType(state) {
+			return () => {
+				return state.loadedToolTypes.filter(toolType => {
+					return toolType.name === "Rooms";
+				})[0];
+			};
 		},
 		loadedToolTypesTools(state) {
 			return state.loadedToolTypes.filter(toolType => {
@@ -756,14 +989,14 @@ export const store = new Vuex.Store({
 		loadedChildrenToolTypes_tool(state) {
 			return toolTypeID => {
 				return state.loadedToolTypes.filter(toolType => {
-					return (toolType.parent._id === toolTypeID && toolType.isTool);
+					return (toolType.parent._id === toolTypeID && toolType.isTool && toolType.name !== "All");
 				});
 			}
 		},
 		loadedChildrenToolTypes_category(state) {
 			return toolTypeID => {
 				return state.loadedToolTypes.filter(toolType => {
-					return (toolType.parent._id === toolTypeID && !(toolType.isTool));
+					return (toolType.parent._id === toolTypeID && !(toolType.isTool) && toolType.name !== "All");
 				});
 			}
 		},
@@ -853,6 +1086,27 @@ export const store = new Vuex.Store({
 					return supplier._id === supplierID;
 				});
 			};
+		},
+
+		// CHECKOUT DEVICE GETTERS
+		loadedCheckoutDevices(state) {
+			return state.loadedCheckoutDevices;
+		},
+		loadedCheckoutDevice(state) {
+			return checkoutDeviceID => {
+				return state.loadedCheckoutDevices.find(checkoutDevice => {
+					return checkoutDevice._id === checkoutDeviceID;
+				});
+			};
+		},
+		loadedAllContainedToolIDs(state, getters) {
+			var toolIDs = [];
+			for (let checkoutDevice of getters.loadedCheckoutDevices) {
+				for (let toolReceptacle of checkoutDevice.toolReceptacles) {
+					if (toolReceptacle.containedTool) toolIDs.push(toolReceptacle.containedTool._id);
+				}
+			}
+			return toolIDs;
 		},
 
 

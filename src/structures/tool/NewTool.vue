@@ -115,7 +115,7 @@ export default {
 				toolType: this.toolType,
 				status: this.toolStatus
 			};
-			this.$store.dispatch('createTool', {toolData: toolData});
+			this.$store.dispatch('createTool', {toolData: toolData, redirect: true});
 		}
 	}
 };

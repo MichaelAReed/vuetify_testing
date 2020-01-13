@@ -63,7 +63,7 @@
 											View Details
 										</v-btn>
 									</v-card-actions>
-									<v-card v-if="loggedInUser.isAdmin">
+									<v-card v-if="loggedInUser.isAdmin && user.permRequests.length > 0">
 										<v-card-title>
 											Permission Requests
 										</v-card-title>

@@ -8,7 +8,7 @@
 	>
 		<v-icon left>{{ tool.checkedOutBy ? "mdi-checkbox-blank-circle-outline" : (tool.status === 'ready' ? 'mdi-check-circle-outline' : (tool.status === 'repairing' ? 'mdi-tools' : 'mdi-alert-circle')) }}</v-icon>
 		<div v-if="displayName">
-			{{ toolTypeName }} #{{tool.nameNum}} :
+			{{ tool.name }} -
 		</div>
 		{{ tool.checkedOutBy ? "Checked Out" : tool.status }}
 	</v-chip>

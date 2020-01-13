@@ -5,13 +5,13 @@ import Router from 'vue-router';
 //////////////////////// VIEW IMPORTS //////////////////////////
 ////////////////////////////////////////////////////////////////
 import Home from '@/views/Home.vue';
-import Profile from '@/views/Profile.vue';
-import BookRoom from '@/views/BookRoom.vue';
-
-import Login from '@/views/Login.vue';
-import SignUp from '@/views/SignUp.vue';
+// import Profile from '@/views/Profile.vue';
+//
+// import Login from '@/views/Login.vue';
+// import SignUp from '@/views/SignUp.vue';
 
 import AuthGuard from '@/router/AuthGuard';
+import AdminGuard from '@/router/AdminGuard';
 
 // Page imports for Supplier schema.
 import Suppliers from '@/structures/supplier/Suppliers.vue';
@@ -38,6 +38,13 @@ import ToolType from '@/structures/toolType/ToolType';
 import NewTool from '@/structures/tool/NewTool';
 import Tool from '@/structures/tool/Tool';
 
+// Page imports for CheckoutObject schema.
+import CheckoutDevices from '@/structures/checkoutDevice/CheckoutDevices';
+import NewCheckoutDevice from '@/structures/checkoutDevice/NewCheckoutDevice';
+import CheckoutDevice from '@/structures/checkoutDevice/CheckoutDevice';
+
+import toolReceptacle from '@/structures/checkoutDevice/ToolReceptacle';
+
 Vue.use(Router);
 
 export default new Router({
@@ -50,26 +57,28 @@ export default new Router({
 			name: 'home',
 			component: Home
 		},
-		{
-			path: '/profile',
-			name: 'profile',
-			component: Profile,
-			beforeEnter: AuthGuard
-		},
-		{
-			path: '/login',
-			name: 'login',
-			component: Login
-		},
-		{
-			path: '/signup',
-			name: 'signup',
-			component: SignUp
-		},
+// 		{
+// 			path: '/profile',
+// 			name: 'profile',
+// 			component: Profile,
+// 			beforeEnter: AuthGuard
+// 		},
+// 		{
+// 			path: '/login',
+// 			name: 'login',
+// 			component: Login
+// 		},
+// 		{
+// 			path: '/signup',
+// 			name: 'signup',
+// 			component: SignUp
+// 		},
 		{
 			path: '/bookroom',
 			name: 'bookRoom',
-			component: BookRoom
+			component: ToolTypes,
+			props: {onlyRooms: true},
+			beforeEnter: AuthGuard
 		},
 		{
 			path: '/suppliers',
@@ -97,8 +106,8 @@ export default new Router({
 			beforeEnter: AuthGuard
 		},
 		{
-// 			path: '/users/newMattermostUser',
-			path: '/',
+			path: '/users/newMattermostUser',
+// 			path: '/',
 			name: 'newMattermostUser',
 			component: NewMattermostUser
 		},
@@ -126,7 +135,7 @@ export default new Router({
 			path: '/teams/new',
 			name: 'newTeam',
 			component: NewTeam,
-			beforeEnter: AuthGuard
+			beforeEnter: AdminGuard
 		},
 		{
 			path: '/teams/:id',
@@ -151,7 +160,7 @@ export default new Router({
 			path: '/toolTypes/new',
 			name: 'newToolType',
 			component: NewToolType,
-			beforeEnter: AuthGuard
+			beforeEnter: AdminGuard
 		},
 		{
 			path: '/toolTypes/:id',
@@ -165,7 +174,7 @@ export default new Router({
 			name: 'newTool',
 			props: true,
 			component: NewTool,
-			beforeEnter: AuthGuard
+			beforeEnter: AdminGuard
 		},
 		{
 			path: '/tools/:id',
@@ -173,7 +182,33 @@ export default new Router({
 			props: true,
 			component: Tool,
 			beforeEnter: AuthGuard
-		}
+		},
+		{
+			path: '/checkoutDevices/new/',
+			name: 'newCheckoutDevice',
+			component: NewCheckoutDevice,
+			beforeEnter: AdminGuard
+		},
+		{
+			path: '/checkoutDevices',
+			name: 'checkoutDevices',
+			component: CheckoutDevices,
+			beforeEnter: AuthGuard
+		},
+		{
+			path: '/checkoutDevices/:id',
+			name: 'checkoutDevice',
+			props: true,
+			component: CheckoutDevice,
+			beforeEnter: AuthGuard
+		},
+		{
+			path: '/checkoutDevices/:checkoutDeviceID/:toolReceptacleID',
+			name: 'toolReceptacle',
+			props: true,
+			component: ToolReceptacle,
+			beforeEnter: AuthGuard
+		},
 
 		//     {
 		//       path: "/about",

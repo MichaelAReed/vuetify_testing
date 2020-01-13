@@ -180,7 +180,7 @@ export default {
 				description: 	this.supplierDescription,
 				lastUpdated: 	this.submittableDateTime
 			};
-			this.$store.dispatch('createSupplier', {supplierData: supplierData, image: this.supplierImage});
+			this.$store.dispatch('createSupplier', {supplierData: supplierData, image: this.supplierImage, redirect: true});
 		},
 		onFilePicked(file) {
 			let filename = file.name;

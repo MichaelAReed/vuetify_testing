@@ -1,0 +1,193 @@
+Creating a new project:
+* Make sure you have npm and node installed
+	* Run "npm -v" and "node --version"
+	* If you don't have it, do something like this (probably not the original I used)
+		* https://tecadmin.net/install-latest-nodejs-npm-on-linux-mint/
+* Make sure you have vue and vue-cli installed:
+	* Run "vue --version"
+	* If you don't have it, use npm to install:
+		* npm install -g @vue/cli
+* You can now choose to use the CLI or the GUI to make a new app
+	* CLI
+		* command: "vue create app_folder_name"
+			* "Please Pick a Preset" - for now just choose "Manually Select Features"
+			* It seems that we'll generally want the following options:
+				* Babel - Put in next-gen JavaScript -> Get browser-compatible JavaScript out (https://babeljs.io/)
+				* Router - TODO
+				* Linter / Formatter - a layer to check your code for styling consistency and such things as far as I'm aware.
+				* Vuex - Vuex is a state management pattern + library for Vue.js applications (https://vuex.vuejs.org/)
+			* "Use History Mode for Router" - select yes for now, somehow changes if #s or ?s are used in the urls?  Helps with SEO?
+				* This is actually explained a bit more here in the "Understand Hash History" section: https://developer.okta.com/blog/2018/07/03/deploy-vue-app-aws
+				* Essentially not using history mode will leave your URLs with #'s to allow your browser to know not to reload, you can make the URLs pretty with history mode but it might give you behavior like going directly to a page in your browser failing (note, this doesn't seem to happen to me though when I select this here).
+			* If using a linter:
+				* "Pick a linter / formatter config":
+					* ESlint + prettier is the suggested option for now
+				* "Pick additional lint options"
+					* Just choose: "Lint on save" for now.
+			* "Where do you prefer placing config for ..."
+				* Consensus seems to be "in dedicated config files"
+			* You can save this as a default for later but your currently not certain on that many of these
+
+Vuetify - Essentially seems to be something similar to bootstrap but built into Vue stuff?
+* https://vuetifyjs.com/en/
+* https://vuetifyjs.com/en/getting-started/quick-start
+* Setting up in new project
+	* cd into the Vue project dir
+	* run "vue add vuetify"
+	* "Choose a preset"
+		* Just go with default for now.
+
+
+GIT STUFF
+* NOTE: vuetify already initializes your git repository
+	* run "git status" to verify it's been setup correctly
+	* run "git add remote origin GITHUB_URL" to link it to your repository on github
+	* you'll now have to set the upstream for pushing by running "git push --set-upstream origin master"
+		* This seems to explain the issue: https://stackoverflow.com/questions/17096311/why-do-i-need-to-explicitly-push-a-new-branch/17096880#17096880
+			* Essentially the "upstream" (the server endpoint) initializes with no branch, the default setting of git is that it's not connected to any particular branch and none in fact exist on the upstream.  The command creates a new branch on upstream and connects it to your local master
+	* Run "git add *" to add all the files to your repo - not sure this is best practice tbh but that stuff can come later
+	* Run "git commit -m "commit message here"" to actually commit changes to local repo
+	* Afterwards you can now just run git push to send up to the github repo
+
+
+Using a project:
+* cd into the project dir
+* running "npm run serve" will begin the server with some example bullshit, you can click the local link it provides for viewing this.
+* While this is running, changes that you save to the files will be hot-loaded into the running server.
+* You were going through this tutorial for developing a test app: https://www.youtube.com/watch?v=BdkF9eaJ1OU&list=PLjuQOVlnQv2Vg2f1rsBP1Ys5AA45_JE2Z&index=1
+* When you run "npm run serve", it isn't outputting deployable static pages and shit, it's running live.  Run "npm run build" to do that.
+* The linter will then give you a bunch of style conforming hints which you should probably fix straight away.
+* If you're getting errors in the linting and you want to configure it, there is a configuration file for eslint that's put in the root directory called .eslintrc.js
+* Note that I also added a .prettierrc without knowing what I was doing according to this link (and using the configuration listed there but changed "tabs" to true): https://github.com/prettier/prettier-vscode/issues/344
+*
+
+Running a View layer (Vue) on AWS
+* We want to use S3 for the view layer because it allows to disconnect it from the backend entirely and S3 runs serverless.
+* You used this tutorial: https://developer.okta.com/blog/2018/07/03/deploy-vue-app-aws
+* This is where you have your current bucket running: http://supplierdb-vue.s3-website-ap-northeast-1.amazonaws.com
+	* Note: even though S3 allows you to allow public open access, you still have to specifically add the permissions as described in the tutorial, no idea why
+	* Access Key ID: AKIAJOD3PXUEMBJCYJPA
+	* Secret Access Key: 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
+* After you've set up aws (run "aws --v" to check) (note that it runs using python so you usually install with pip it seems) and set up your credentials, you can deploy to the bucket with the cli.
+* Running "aws s3 sync ./dist s3://your-bucket-name" does this, in our case it's "aws s3 sync ./dist s3://supplierdb-vue"
+* Lastly, you can place this command in your package.json file under the deploy keyword.  This now let's you straight up run "npm run deploy" and boom you're done.
+* NOTE:
+	* When you try to directly access a 'sub-url' of the AWS static hosted website, it will throw an error because the system only has one file (the other stuff is handed client side in javascript by the vue router).  To get around this, you need to go to the AWS console, select "Static website hosting" and then set the error document to "index.html" (or whatever your index document is called).  This will then redirect the error of not finding some other 'sub-url' to index.html where the vue router takes charge and actually routes you to the right place - boom, done.
+
+
+Firebase
+* Google service that seems kind of like the equivalent of using AWS buckets for a live website front-end but for the backend.
+* It can also do front-end hosting - I'm going to test that out a little bit too but I guess it would make sense if we put the backend on there too.
+	* Started setting up and got this - just putting here for reference:
+		* Copy and paste these scripts into the bottom of your <body> tag, but before you use any Firebase services:
+<!-- The core Firebase JS SDK is always required and must be listed first -->
+<script src="/__/firebase/6.6.1/firebase-app.js"></script>
+
+<!-- TODO: Add SDKs for Firebase products that you want to use
+     https://firebase.google.com/docs/web/setup#reserved-urls -->
+
+<!-- Initialize Firebase -->
+<script src="/__/firebase/init.js"></script>
+	* During this process I also installed the Firebase CLI using: npm install -g firebase-tools
+	* In your vue project directory run "firebase init" (note you may have to run "firebase login" first)
+		* NOTE: doing this shit requires being connected to a VPN (LAAAAME)
+		* Are you Ready to Proceed? -> Y
+		* What do you want to use? -> hosting
+		* Set the public directory to dist (note that this is the compiled parts of the vue project that need to be served to a client).
+		* Configure as a single-page app? -> Yes
+		*
+	* Now running firebase serve will serve up whatever is in the public directory (in our case dist) for testing that it works correctly locally.
+		* NOTE: you're going to have to re-run your "npm run build" to make sure the firebase code is in the index file
+	* Now you just run "firebase deploy" and shit works, magic...
+*
+
+Javascript introduction:
+https://www.w3schools.com/js/default.asp
+
+Nodejs tutorial (includes installation of nodejs which comes with npm):
+https://www.w3schools.com/nodejs/default.asp
+https://www.tutorialsteacher.com/nodejs/
+
+NPM intro:
+https://nodesource.com/blog/an-absolute-beginners-guide-to-using-npm/
+
+MongoDB intro:
+	https://www.tutorialspoint.com/mongodb/index.htm
+	installation:
+		http://linuxforever.info/2017/04/13/how-to-install-mongodb-3-4-in-linux-mint-18-ubuntu-16-04/
+		for Amazon Linux:
+			https://docs.mongodb.com/manual/tutorial/install-mongodb-on-amazon/
+	start/stop/get status with:
+		sudo systemctl start mongodb
+		sudo systemctl stop mongodb
+		sudo systemctl status mongodb
+	Interact with mongo in the shell:
+		mongo
+	Intro to the CRUD operators
+		https://docs.mongodb.com/manual/crud/
+	Great explanation of queries
+		https://docs.mongodb.com/manual/tutorial/query-documents/
+	NOTE: the node driver uses this documentation
+		http://mongodb.github.io/node-mongodb-native/2.1/api/Collection.html#findOneAndUpdate
+
+
+Notes on how node.js deals with http routing (note: most of this actually gets covered by packages you import in practicality):
+	https://nodejs.org/en/docs/guides/anatomy-of-an-http-transaction/
+
+Notes on fetch:
+	https://developers.google.com/web/ilt/pwa/working-with-the-fetch-api
+
+
+PLAN:
+* General
+	* Add record logs for changes made to entries
+		* Need to finalise structure, examples:
+			* Single record collection for holding records for all object types and all interactions (maybe with an open-ended entry for interaction type (checkout, permission add etc)
+			* Having a list of records within each individual object which can obviously then lead to them being non-authoritive and duplicitous but very easy to retrieve and manage theoretically
+	* Add a table in the user entries for permission requests that can be viewed in a general permission requests management page by an admin.
+	* Add checks for bookings on checkout - DONE
+	* Cancel booking after return - DONE
+	* Setup restful polling system for the M5Stack and then a websocket connection with it for better responsiveness.
+	* Add the request for permission functionality - DONE
+		* Let the permission request approval process select an expiry date.
+	* Add the ability to delete toolType permissions on users (currently it can be circumvented by adding a permission for the same type with an expiry in the past). - DONE
+	* Make a specific room booking version of toolTypes page - DONE
+	* ToolType option upgrades
+		* Setup "one time use" tools that can't be checked out but still require permissions etc to access.  This will be used for consumable items.
+		* Make rooms automatically check back in to their checkoutDevice either after the booking ends or 1 hour has passed and there is no booking (the user just checked it out by entering).
+		* Do we need any special rules for storage boxes??
+		* Have automatic mattermost reminders for tools that have been booked out for extended periods.
+		* Have a problem report system that gets logged in the records for the tool.
+	* After records are being generated, create a "Who's here at the moment" page that scrapes records for teams and team members that are in the office right now.
+	* Auto-warn users when they're booking is coming up, the start has already passed and their booking will expire soon, about to finish, if they have something checked out that has an upcoming booking by someone else
+	* Prevent users from checking anything out if they have a tool checked out that is booked by someone else.
+	* Prevent a users booking from expiring if not checked out in time if another user currently has it checked out.
+	* Make editing dialogs for tools, toolTypes, teams, checkoutDevices?
+	* Add a system for checking in packages as they arrive in the office
+* Front-end on Vue with Vuetify
+	* Need to setup deployable system on AWS - DONE
+	* Have everything tracked on Github - DONE
+	* Set up login authentication with Mattermost - DONE
+	* Setup dynamic control with nodejs backend locally - DONE?
+	* Setup a domain name for the site
+	* Test with a QR code scan through wechat - DONE (success)
+	* Find a method of allowing the booking calendar to be used on mobile where thumb scrolling currently fucks with it. - DONE
+	* Make the permission chip also display if the toolType has had permission requested if there is no permission. - DONE
+	* Need to set up environment variables for production v development for the front-end.
+	* Add a list-type view that can be opened or collapsed for bookings on users (and maybe tools too?  but less useful).
+	* Make the toolTypes view a collapsable tree structure for ease of navigation.
+* Backend with NodeJS
+	* Deploy to AWS - DONE
+	* Retest most functionality with Vue frontend locally and then on AWS - DONE
+	* Setup system for messaging users on mattermost.
+	* Maybe setup the add permission request to not follow through if the user already has the permission? - DONE
+	* Make the lastUpdated property update automatically on any changes to a user or their permissions
+	* Find out how to definitively make sure the server is constantly running. - kinda DONE
+		* Keeping a process running in the background on your server so when you logout it doesn't die:
+				https://stackoverflow.com/questions/954302/how-to-make-a-programme-continue-to-run-after-log-out-from-ssh
+			NOTE: I swapped to using forever after this because something was going wrong with the previous setup, see this stackoverflow:
+				https://stackoverflow.com/questions/12701259/how-to-make-a-node-js-application-run-permanently
+				Come to think of it, the problem may have been me not exiting from the SSH connection correctly and cutting it when I hibernated my laptop.
+	* Add the updateChanges method to all of my other data types (currently it's only in the user type).
+	* Need to change the method of recording objectInfo information with array changes.  At the moment, it just records the 'toString()' which sometimes just yields '[object object]'
+

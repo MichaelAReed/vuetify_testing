@@ -20,6 +20,7 @@
 								<v-img
 									class="white--text mb-10"
 									width="200px"
+									height="200px"
 									:src="toolType.imageURL"
 								>
 								</v-img>
@@ -39,19 +40,43 @@
 						<v-row>
 							<v-col cols="4">
 								<app-chip-toolTypePermission :toolTypeID="toolType._id"></app-chip-toolTypePermission>
+								<br>
 								<app-chip-toolType v-if="toolType.parent" :toolType="toolType.parent"></app-chip-toolType>
 							</v-col>
 							<v-col cols="8">
 								<v-card-text>
-									<div class="info--text">
-										Last Updated: {{ toolType.lastUpdated | date }}
-									</div>
+									<v-container>
+										<v-row class="mt-n6 mb-n6">
+											<v-col cols="5" class="info--text">
+												Last Updated:
+											</v-col>
+											<v-col cols="7">
+												{{ toolType.lastUpdated | date }}
+											</v-col>
+										</v-row>
+										<v-row class="mt-n6 mb-n6">
+											<v-col cols="5" class="info--text">
+												Cost:
+											</v-col>
+											<v-col cols="7">
+												{{ toolType.cost }} RMB
+											</v-col>
+										</v-row>
+										<v-row class="mt-n6 mb-n6">
+											<v-col cols="5" class="info--text">
+												Wiki Instructions:
+											</v-col>
+											<v-col cols="7">
+												<a :href="toolType.instructionsURL">Link</a>
+											</v-col>
+										</v-row>
+									</v-container>
 								</v-card-text>
 								<v-card-actions>
 									<v-spacer></v-spacer>
 									<v-btn v-if="loggedInUser.isAdmin" class="primary" @click="onDeleteToolType">Delete Tool Type</v-btn>
 									<app-add-user-permission-dialog
-										v-if="!toolType.userHasPermission"
+										v-if="!toolType.userHasPermission && !toolType.userHasRequestedPermission"
 										:adminView="false" :user="loggedInUser"
 										:toolTypeInputID="toolType._id"
 									>
@@ -85,7 +110,7 @@
 								</v-card>
 							</v-col>
 						</v-row>
-						<v-row v-if="toolType.isTool">
+						<v-row>
 							<v-col cols="12">
 								<v-card>
 									<v-card-title>
@@ -97,13 +122,22 @@
 											:key="tool._id"
 											:displayName=true
 											:tool="tool"
+											:redirect="true"
 										>
 										</app-chip-toolStatus>
 									</v-card-text>
 									<v-card-actions>
-										<app-add-tool-dialog v-if="loggedInUser.isAdmin" :toolType="toolType"></app-add-tool-dialog>
+										<app-add-tool-dialog v-if="loggedInUser.isAdmin" :toolTypeID="toolType._id"></app-add-tool-dialog>
 									</v-card-actions>
 								</v-card>
+							</v-col>
+						</v-row>
+						<v-row>
+							<v-col cols="12">
+								<app-block-records-list
+									:records="toolType.records"
+								>
+								</app-block-records-list>
 							</v-col>
 						</v-row>
 					</v-container>

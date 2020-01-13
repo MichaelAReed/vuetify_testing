@@ -3,6 +3,7 @@
 		<app-chip-permissionOrBan
 			:permissionOrBan="permissionRequest"
 			:permissionNotBan="true"
+			:userID="requestingUserID"
 		>
 		</app-chip-permissionOrBan>
 		Submitted: {{ permissionRequest.created | date }}
@@ -63,7 +64,7 @@ export default {
 // 			this.$store.dispatch('deletePermissionRequest', {userID: this.requestingUserID, permissionData: {toolTypeID: this.permissionRequest.toolType._id}});
 		},
 		deleteRequest() {
-			this.$store.dispatch('deletePermissionRequest', {userID: this.requestingUserID, permissionData: {permissionRequestID: this.permissionRequest._id}});
+			this.$store.dispatch('deletePermissionRequest', {userID: this.requestingUserID, permissionData: {toolTypeID: this.permissionRequest.toolType._id}});
 		}
 	}
 };

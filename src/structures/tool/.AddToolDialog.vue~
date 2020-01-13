@@ -1,5 +1,5 @@
 <template>
-	<v-dialog width="400px" persistent v-model="editDialog">
+	<v-dialog width="400px" persistent v-model="newToolDialog">
 		<template v-slot:activator="{ on }">
 			<v-btn v-on="on">
 				Add New Tool of This Type
@@ -22,6 +22,23 @@
 						<form ref="createToolForm" @submit.prevent="onCreateTool">
 							<v-row>
 								<v-col cols="12" sm="6" offset-sm="3">
+									<v-switch
+										v-model="hasUniqueName"
+										label="Add UniqueName"
+									>
+									</v-switch>
+									<v-text-field
+										v-if="hasUniqueName"
+										name="ToolUniqueName"
+										label="Name of Tool"
+										id="tool-unique-name"
+										v-model="toolUniqueName"
+									>
+									</v-text-field>
+								</v-col>
+							</v-row>
+							<v-row>
+								<v-col cols="12" md="8" offset-sm="2">
 									<v-select
 										name="ToolStatus"
 										:items="availableToolStatusList"
@@ -34,7 +51,7 @@
 								</v-col>
 							</v-row>
 							<v-row>
-								<v-col cols="12" sm="6" offset-sm="3">
+								<v-col cols="12" md="8" offset-sm="2">
 									<v-btn
 										class="primary"
 										:disabled="!formIsValid() || loading"
@@ -43,6 +60,7 @@
 									>
 										Create Tool
 									</v-btn>
+									<v-btn @click="newToolDialog = false">Cancel</v-btn>
 								</v-col>
 							</v-row>
 						</form>
@@ -58,9 +76,11 @@ export default {
 	props: ['toolType'],
 	data() {
 		return {
-			editDialog: 		false,
+			newToolDialog: 		false,
 			toolStatus:			'',
 			availableToolStatusList: ['ready', 'broken', 'repairing'],
+			hasUniqueName:		false,
+			toolUniqueName: 	'',
 			statusRules: [
 				value => (this.availableToolStatusList.includes(value)) || 'Please choose a status from the list.'
 			],
@@ -69,9 +89,6 @@ export default {
 	computed: {
 		loading() {
 			return this.$store.getters.loading;
-		},
-		error() {
-			return this.$store.getters.error;
 		}
 	},
 	methods: {
@@ -90,12 +107,8 @@ export default {
 				toolType: this.toolType,
 				status: this.toolStatus
 			};
+			if (this.hasUniqueName) toolData["name"] = this.toolUniqueName
 			this.$store.dispatch('createTool', {toolData: toolData});
-		},
-		// This is a function that you link to the dismissal event of the error popup.
-		// When the error popup is dismissed, this tells the vuex state to just clear the error which makes the popup element also become invisible.
-		onDismissed() {
-			 this.$store.dispatch('clearError');
 		}
 	}
 };

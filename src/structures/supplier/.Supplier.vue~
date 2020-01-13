@@ -16,7 +16,7 @@
 				<v-card>
 					<v-card-title>
 						<h3>{{ supplier.name }}</h3>
-						<template v-if="userIsCreator">
+						<template v-if="userIsAdmin">
 							<v-spacer></v-spacer>
 							<app-edit-supplier-details-dialog :supplier="supplier"></app-edit-supplier-details-dialog>
 						</template>

@@ -20,6 +20,7 @@
 								<v-img
 									class="white--text"
 									width="200px"
+									height="200px"
 									:src="team.imageURL"
 								>
 								</v-img>

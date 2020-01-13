@@ -182,6 +182,9 @@ export default {
 		next() {
 			this.$refs.calendar.next();
 		},
-	}
+	},
+	mounted () {
+		if (this.$refs.calendar) this.$refs.calendar.scrollToTime('08:00');
+	},
 }
 </script>

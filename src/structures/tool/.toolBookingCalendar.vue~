@@ -215,6 +215,8 @@ export default {
 			}
 		},
 		showEvent ({ nativeEvent, event }) {
+			this.newStart = null;
+			this.newEnd = null;
 			const open = () => {
 				this.selectedEvent = event
 				this.selectedElement = nativeEvent.target

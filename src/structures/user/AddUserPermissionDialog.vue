@@ -96,7 +96,11 @@
 					<v-row>
 						<v-col cols="12">
 							<v-card-actions>
-								<v-btn @click="onSaveChanges"> {{ adminView ? "Save" : "Request" }}</v-btn>
+								<v-btn
+									@click="onSaveChanges"
+								>
+									{{ adminView ? "Save" : "Request" }}
+								</v-btn>
 								<v-btn @click="editDialog = false">Cancel</v-btn>
 							</v-card-actions>
 						</v-col>
@@ -142,7 +146,11 @@ export default {
 			return this.$store.getters.loading;
 		},
 		toolTypeImageURL() {
-			return this.$store.getters.loadedToolType(this.toolTypesListDict[this.toolType]).imageURL;
+			if (this.toolTypesList.length > 0) {
+				return this.$store.getters.loadedToolType(this.toolTypesListDict[this.toolType]).imageURL;
+			} else {
+				return "";
+			}
 		},
 		toolTypeInput() {
 			if (this.toolTypeInputID) return this.$store.getters.loadedToolType(this.toolTypeInputID);
@@ -173,6 +181,9 @@ export default {
 // 		}
 	},
 	methods: {
+		forceUpdate() {
+			this.$forceUpdate();
+		},
 		checkFormValidity() {
 // 			return true;
 			if (this.$refs.requestPermissionForm && this.$refs.requestPermissionForm.checkValidity) {
@@ -213,10 +224,9 @@ export default {
 			this.toolType = this.toolTypesList[0];
 		} else {
 			for (let toolType of this.$store.getters.loadedToolTypes(true, true)) {
-				if (!toolType.userHasPermission && !toolType.userHasRequestedPermission) {
-					this.toolTypesList.push(toolType['name']);
-					this.toolTypesListDict[toolType['name']] = toolType._id;
-				}
+// 				if (!toolType.userHasPermission && !toolType.userHasRequestedPermission) {
+				this.toolTypesList.push(toolType['name']);
+				this.toolTypesListDict[toolType['name']] = toolType._id;
 	// 			if (this.toolTypeID === toolType._id) {
 	// 				console.log("here");
 	// 				this.toolType = toolType['name'];

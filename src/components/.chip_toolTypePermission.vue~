@@ -7,7 +7,7 @@
 		:color="toolType.userHasPermission == true ? 'success' : (toolType.userHasPermission == false ? 'error' : 'warning')"
 	>
 		<v-icon left>{{ toolType.userHasPermission == true ? "mdi-check-circle-outline" : (toolType.userHasPermission == false ? "mdi-block-helper" : "mdi-checkbox-blank-circle-outline") }}</v-icon>
-		{{ toolType.userHasPermission == true ? "Permitted" : (toolType.userHasPermission == false ? "Banned" : "Not yet permitted") }}
+		{{ toolType.userHasPermission == true ? "Permitted" : (toolType.userHasPermission == false ? "Banned" : (toolType.userHasRequestedPermission ? " - Requested" : "Not permitted")) }}
 	</v-chip>
 </template>
 
