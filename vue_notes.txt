@@ -66,8 +66,6 @@ Running a View layer (Vue) on AWS
 * You used this tutorial: https://developer.okta.com/blog/2018/07/03/deploy-vue-app-aws
 * This is where you have your current bucket running: http://supplierdb-vue.s3-website-ap-northeast-1.amazonaws.com
 	* Note: even though S3 allows you to allow public open access, you still have to specifically add the permissions as described in the tutorial, no idea why
-	* Access Key ID: AKIAJOD3PXUEMBJCYJPA
-	* Secret Access Key: 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
 * After you've set up aws (run "aws --v" to check) (note that it runs using python so you usually install with pip it seems) and set up your credentials, you can deploy to the bucket with the cli.
 * Running "aws s3 sync ./dist s3://your-bucket-name" does this, in our case it's "aws s3 sync ./dist s3://supplierdb-vue"
 * Lastly, you can place this command in your package.json file under the deploy keyword.  This now let's you straight up run "npm run deploy" and boom you're done.

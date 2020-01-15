@@ -189,4 +189,5 @@ PLAN:
 				https://stackoverflow.com/questions/12701259/how-to-make-a-node-js-application-run-permanently
 				Come to think of it, the problem may have been me not exiting from the SSH connection correctly and cutting it when I hibernated my laptop.
 	* Add the updateChanges method to all of my other data types (currently it's only in the user type).
+	* Need to change the method of recording objectInfo information with array changes.  At the moment, it just records the 'toString()' which sometimes just yields '[object object]'
 

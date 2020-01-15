@@ -39,6 +39,7 @@
 											<v-icon>mdi-delete-forever</v-icon>
 										</v-btn>
 									</template>
+									<p>If you just scanned this from a device, press a button on a locker and scan the code it shows.</p>
 								</v-card-title>
 							</v-col>
 						</v-row>

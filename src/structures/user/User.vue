@@ -31,6 +31,7 @@
 									</v-avatar>
 									{{ user.team.name }}
 								</v-chip>-->
+								Testing
 							</v-col>
 							<v-col  cols="8">
 								<v-card-title>

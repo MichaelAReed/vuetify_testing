@@ -39,6 +39,7 @@
 											<v-icon>mdi-delete-forever</v-icon>
 										</v-btn>
 									</template>
+									<p>If you just scanned this from a device, press a button on a locker.</p>
 								</v-card-title>
 							</v-col>
 						</v-row>
@@ -111,7 +112,7 @@ export default {
 			return this.$store.getters.user;
 		},
 		records() {
-			return this.$store.getters.loadedRecordsOfUser(this.id);
+			return this.$store.getters.loadedRecordsOfObject(this.id);
 		}
 	},
 	methods: {
