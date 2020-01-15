@@ -1,6 +1,8 @@
 import Vue from 'vue';
 import Router from 'vue-router';
 
+import { store } from '@/store'
+
 ////////////////////////////////////////////////////////////////
 //////////////////////// VIEW IMPORTS //////////////////////////
 ////////////////////////////////////////////////////////////////
@@ -47,7 +49,7 @@ import ToolReceptacle from '@/structures/checkoutDevice/ToolReceptacle';
 
 Vue.use(Router);
 
-export default new Router({
+const router = new Router({
 	mode: 'history',
 	base: process.env.BASE_URL,
 	routes: [
@@ -221,3 +223,33 @@ export default new Router({
 		//     }
 	]
 });
+
+// router.afterEach(to => {
+// 	localStorage.setItem("LAST_ROUTE", to.name);
+// });
+
+router.beforeEach((to, from, next) => {
+	const lastRouteName = localStorage.getItem("LAST_ROUTE");
+	const lastRouteID = localStorage.getItem("LAST_ROUTE_ID");
+
+	const shouldRedirect = Boolean( to.name === "user" && lastRouteName );
+
+	if (shouldRedirect) {
+		store.dispatch('loadEverything')
+		.then(() => {
+			console.log("redirecting");
+			console.log(lastRouteID);
+			localStorage.removeItem("LAST_ROUTE");
+			localStorage.removeItem("LAST_ROUTE_ID");
+			next({ name: lastRouteName, params: {id: lastRouteID} });
+		})
+		.catch((err) => {
+			next(err);
+		});
+	} else {
+		console.log("not redirecting");
+		next();
+	}
+});
+
+export default router;

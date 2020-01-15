@@ -723,7 +723,8 @@ export const store = new Vuex.Store({
 		},
 		loadEverything({commit, dispatch}) {
 			let typeStrings = ['record', 'supplier', 'toolType', 'tool', 'booking', 'user', 'team', 'checkoutDevice']
-			return typeStrings.map((typeString) => {return dispatch('loadObjects', {typeString: typeString})});
+			var promises = typeStrings.map((typeString) => {return dispatch('loadObjects', {typeString: typeString})});
+			return Promise.all(promises);
 		},
 		loadObjects({commit}, payload) {
 			return new Promise((resolve, reject) => {
@@ -783,6 +784,7 @@ export const store = new Vuex.Store({
 			commit('setLoading', true);
 			commit('clearError');
 			console.log("attempting to login");
+			console.log(router.name);
 			// TODO: make this reference to the backendHost general
 			window.location.href = `${config.BACKEND_ROOT_URL}login`;
 		},
@@ -833,19 +835,21 @@ export const store = new Vuex.Store({
 				// and I couldn't just do "if (data)", I should probably find a better way to do it later.
 				if (data._id) {
 					commit('setUser', data);
-					dispatch('loadEverything');
 // 					dispatch('loadSuppliers');
 // 					dispatch('loadTeams');
 // 					dispatch('loadUsers');
 // 					dispatch('loadToolTypes');
 // 					dispatch('loadTools');
 // 					dispatch('loadBookings');
-					console.log("authorization succeeded")
-					if (next) next();
+					console.log("authorization succeeded");
+					return dispatch('loadEverything');
 				} else if (!data.mattermostImgURL) {
 					return dispatch('loginUser');
 				}
 				commit('setLoading', false);
+			})
+			.then(() => {
+				if (next) next();
 			})
 			.catch((error) => {
 				console.log(error);
@@ -869,9 +873,13 @@ export const store = new Vuex.Store({
 				if (data.error) return Promise.reject(data.error);
 				commit('setUser', null);
 				commit('setLoading', false);
-				// NOTE: putting this catch here just means I'm ignoring all errors which probable isn't the right thing to do
+				// NOTE: putting this catch here just means I'm ignoring all errors which probably isn't the right thing to do
 				// but the push throws an error if it's already at the home page when it pushes you to the home page.
-				router.push('/').catch(err => {});
+				console.log("redirecting home after logout");
+				router.push({ name: 'home'})
+				.catch(err => {
+					console.log(err);
+				});
 			})
 			.catch((error) => {
 				console.log(error);
