@@ -1,16 +1,14 @@
 <template>
 	<v-dialog width="400px" persistent v-model="newToolDialog">
 		<template v-slot:activator="{ on }">
-			<v-btn v-on="on">
-				Add New Tool of This Type
-			</v-btn>
+			<v-btn v-on="on">Add New Tool of This Type</v-btn>
 		</template>
 		<v-card>
 			<v-container>
 				<v-row>
 					<v-col cols="1">
 						<v-avatar>
-							<img :src="toolTypeImageURL"></v-img>
+							<img :src="toolTypeImageURL" />
 						</v-avatar>
 					</v-col>
 					<v-col cols="10" offset="1">
@@ -22,19 +20,14 @@
 						<form ref="createToolForm" @submit.prevent="onCreateTool">
 							<v-row>
 								<v-col cols="12" md="8" offset-sm="2">
-									<v-switch
-										v-model="hasUniqueName"
-										label="Add UniqueName"
-									>
-									</v-switch>
+									<v-switch v-model="hasUniqueName" label="Add UniqueName"></v-switch>
 									<v-text-field
 										v-if="hasUniqueName"
 										name="ToolUniqueName"
 										label="Name of Tool"
 										id="tool-unique-name"
 										v-model="toolUniqueName"
-									>
-									</v-text-field>
+									></v-text-field>
 								</v-col>
 							</v-row>
 							<v-row>
@@ -57,9 +50,7 @@
 										:disabled="!formIsValid() || loading"
 										:loading="loading"
 										type="submit"
-									>
-										Create Tool
-									</v-btn>
+									>Create Tool</v-btn>
 									<v-btn @click="newToolDialog = false">Cancel</v-btn>
 								</v-col>
 							</v-row>
@@ -76,25 +67,29 @@ export default {
 	props: ['toolTypeID', 'redirect'],
 	data() {
 		return {
-			newToolDialog: 		false,
-			toolStatus:			'',
+			newToolDialog: false,
+			toolStatus: '',
 			availableToolStatusList: ['ready', 'broken', 'repairing'],
-			hasUniqueName:		false,
-			toolUniqueName: 	'',
+			hasUniqueName: false,
+			toolUniqueName: '',
 			statusRules: [
-				value => (this.availableToolStatusList.includes(value)) || 'Please choose a status from the list.'
-			],
+				value =>
+					this.availableToolStatusList.includes(value) ||
+					'Please choose a status from the list.'
+			]
 		};
 	},
 	computed: {
 		toolType() {
-			return (this.toolTypeID ? this.$store.getters.loadedToolType(this.toolTypeID) : null);
+			return this.toolTypeID
+				? this.$store.getters.loadedToolType(this.toolTypeID)
+				: null;
 		},
 		toolTypeImageURL() {
-			return this.toolType ? this.toolType.imageURL : "";
+			return this.toolType ? this.toolType.imageURL : '';
 		},
 		toolTypeName() {
-			return this.toolType ? this.toolType.name : "";
+			return this.toolType ? this.toolType.name : '';
 		},
 		loading() {
 			return this.$store.getters.loading;
@@ -102,7 +97,10 @@ export default {
 	},
 	methods: {
 		formIsValid() {
-			if (this.$refs.createToolForm && this.$refs.createToolForm.checkValidity) {
+			if (
+				this.$refs.createToolForm &&
+				this.$refs.createToolForm.checkValidity
+			) {
 				return this.$refs.createToolForm.checkValidity();
 			}
 			return false;
@@ -116,8 +114,11 @@ export default {
 				toolType: this.toolType,
 				status: this.toolStatus
 			};
-			if (this.hasUniqueName) toolData["name"] = this.toolUniqueName
-			this.$store.dispatch('createTool', {toolData: toolData, redirect: this.redirect});
+			if (this.hasUniqueName) toolData['name'] = this.toolUniqueName;
+			this.$store.dispatch('createTool', {
+				toolData: toolData,
+				redirect: this.redirect
+			});
 		}
 	}
 };

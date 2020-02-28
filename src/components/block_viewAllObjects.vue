@@ -10,11 +10,11 @@
 					</v-row>
 					<v-row v-if="loggedInUser.isAdmin && !loading">
 						<v-col cols="6">
-							<app-dialog-add-edit-obj typeString="team"></app-dialog-add-edit-obj>
+							<app-dialog-add-edit-obj typeString="typeString"></app-dialog-add-edit-obj>
 						</v-col>
 					</v-row>
 					<v-row v-if="!loading">
-						<v-col cols="12" sm="6" v-for="team in teams" :key="team._id">
+						<v-col cols="12" sm="6" v-for="object in objects" :key="object._id">
 							<v-card class="secondary" height="100%">
 								<v-container>
 									<v-row>
@@ -52,9 +52,21 @@
 
 <script>
 export default {
+	props: ['typeString'],
+	data() {
+		return {
+			dialogShown: false,
+			objPacket: 'tits'
+		};
+	},
 	computed: {
-		teams() {
-			return this.$store.getters.loadedTeams;
+		objects() {
+			if (this.typeString === 'team')
+				return this.$store.getters.loadedTeams;
+			if (this.typeString === 'user')
+				return this.$store.getters.loadedUsers;
+			if (this.typeString === 'toolType')
+				return this.$store.getters.loadedToolTypes;
 		},
 		loggedInUser() {
 			return this.$store.getters.user;
@@ -64,7 +76,7 @@ export default {
 		}
 	},
 	created() {
-		this.$store.dispatch('loadTeams');
+		this.$store.dispatch('teamsLoad');
 	}
 };
 </script>

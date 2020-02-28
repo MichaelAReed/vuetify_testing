@@ -1,0 +1,392 @@
+<template>
+	<v-container>
+		<form ref="createUserForm" @submit.prevent="emitUserDetails">
+			<v-row class="mb-0 mt-0">
+				<v-col cols="12" class="caption">NOTE: Only an admin can change your Mattermost GUID and team.</v-col>
+			</v-row>
+			<v-row class="mb-0 mt-0">
+				<v-col cols="12">
+					<v-text-field
+						v-bind="{readonly: userNameIsReadOnly}"
+						name="UserName"
+						label="Full Name"
+						id="user-name"
+						v-model="userName"
+						:rules="stdRules"
+						required
+					></v-text-field>
+				</v-col>
+			</v-row>
+			<v-row class="mb-0 mt-0">
+				<v-col cols="12">
+					<v-text-field
+						v-bind="{readOnly: emailIsReadOnly}"
+						name="UserEmail"
+						label="Company Email Address"
+						id="user-email"
+						v-model="userEmail"
+						:rules="emailRules"
+						required
+						type="email"
+					></v-text-field>
+				</v-col>
+			</v-row>
+			<v-row class="mb-0 mt-0">
+				<v-col cols="12">
+					<v-text-field
+						name="UserWechat"
+						label="Wechat account ID"
+						id="user-wechat"
+						v-model="userWechat"
+						:rules="stdRules"
+						required
+					></v-text-field>
+				</v-col>
+			</v-row>
+			<v-row class="mb-0 mt-0">
+				<v-col cols="12">
+					<v-text-field
+						v-bind="{readonly: mattermostIsReadOnly}"
+						name="UserMattermost"
+						label="Mattermost account GUID"
+						id="user-mattermost"
+						v-model="userMattermost"
+						:rules="stdRules"
+						required
+					></v-text-field>
+				</v-col>
+			</v-row>
+			<v-row class="mb-0 mt-0">
+				<v-col cols="12">
+					<v-text-field
+						name="UserPhone"
+						label="Chinese Phone #"
+						id="user-phone"
+						v-model="userPhone"
+						:rules="phoneRules"
+						required
+					></v-text-field>
+				</v-col>
+			</v-row>
+			<v-row>
+				<v-col cols="12">
+					<v-select
+						name="UserLang"
+						:items="availableLangsList"
+						label="User Language"
+						id="user-lang"
+						v-model="userLang"
+						:rules="langRules"
+						required
+					></v-select>
+				</v-col>
+			</v-row>
+			<v-row>
+				<v-col>
+					<select-team
+						v-model="userTeamID"
+						v-bind:readonly="teamIsReadOnly"
+						label="Select Team"
+						:defaultTeamID="(existingUser ? existingUser.team._id : null)"
+					></select-team>
+				</v-col>
+			</v-row>
+			<v-row class="mb-0 mt-0">
+				<v-col cols="12">
+					<v-text-field
+						v-bind="{readonly: positionIsReadOnly}"
+						name="UserPosition"
+						label="Team Position"
+						id="user-position"
+						v-model="userPosition"
+						:rules="stdRules"
+						required
+					></v-text-field>
+				</v-col>
+			</v-row>
+			<v-row>
+				<v-col cols="12">
+					<v-textarea
+						name="UserIntroduction"
+						label="Self Introduction"
+						id="user-introduction"
+						v-model="userIntroduction"
+						hint="A quick introduction about yourself for other HAXers and staff members to see.  eg: 'grew up in Australia, studied nursing in USA, love playing Ultimate frisbee, always keen to chat about web design'."
+						:rules="stdRules"
+						required
+					></v-textarea>
+				</v-col>
+			</v-row>
+			<v-row>
+				<v-col cols="12">
+					<v-file-input
+						label="User Profile Image"
+						filled
+						show-size
+						chips
+						accept="image/*"
+						prepend-icon="mdi-camera"
+						ref="userImage"
+						:rules="imageFileRules"
+						:loading="loading"
+						@change="onFilePicked"
+						required
+					></v-file-input>
+				</v-col>
+			</v-row>
+			<v-row v-if="userImageURL">
+				<v-col cols="12">
+					<v-card>
+						<v-img :src="userImageURL" max-height="200" contain></v-img>
+						<v-card-title class="title">{{ userImageName }}</v-card-title>
+					</v-card>
+				</v-col>
+			</v-row>
+			<v-row>
+				<v-col cols="12">
+					<v-btn
+						class="primary mr-2"
+						:disabled="!formIsValid || loading"
+						:loading="loading"
+						type="submit"
+					>Save User</v-btn>
+					<v-btn @click="cancel">Cancel</v-btn>
+				</v-col>
+			</v-row>
+		</form>
+	</v-container>
+</template>
+
+<script>
+// NOTE that right now there isn't API level protection against someone changing their own team or mattermostID, just a naive guard of only admins being able to access the 'adminView' of this element.
+export default {
+	props: ['userPacket', 'existingUser', 'newMattermostUser', 'adminView'],
+	model: {
+		prop: 'userPacket',
+		event: 'submit-event'
+	},
+	data() {
+		return {
+			formIsValid: false,
+
+			userName: '',
+			userEmail: '',
+			userWechat: '',
+			userMattermost: '',
+			userPhone: '',
+			userLang: 'English',
+			userTeamID: '',
+			userPosition: '',
+			userIntroduction: '',
+			userImageURL: '',
+			userImage: null,
+			userImageName: '',
+			teamIsReadOnly: false,
+			availableLangsList: ['English', '中文'],
+			userNameIsReadOnly: false,
+			emailIsReadOnly: false,
+			positionIsReadOnly: false,
+			mattermostIsReadOnly: false,
+			stdRules: [value => !!value || 'Cannot be blank.'],
+			emailRules: [
+				value => {
+					const regexp = /[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?/;
+					return (
+						regexp.test(value) ||
+						'Please enter a valid email address.'
+					);
+				}
+			],
+			phoneRules: [value => !!value || 'Cannot be blank.'],
+			langRules: [
+				value =>
+					this.availableLangsList.includes(value) ||
+					'Please choose a language from the list.'
+			],
+			imageFileRules: [
+				value => {
+					if (value) {
+						if (value['type']) {
+							if (value['name']) {
+								return (
+									(value['type'].split('/')[0] === 'image' &&
+										value['name'].lastIndexOf('.') > 0) ||
+									'Requires a valid image file.'
+								);
+							}
+							return 'File name not found.';
+						}
+						return 'File type not found.';
+					}
+					return 'Required.';
+				}
+			]
+		};
+	},
+	computed: {
+		loading() {
+			return this.$store.getters.loading;
+		},
+		mattermostDetails() {
+			return this.$store.getters.mattermostDetails;
+		}
+	},
+	created() {
+		if (!this.adminView) {
+			console.log('not admin access');
+			this.mattermostIsReadOnly = true;
+			this.teamIsReadOnly = true;
+		}
+
+		if (this.existingUser) {
+			this.userName = this.existingUser.name;
+			this.userEmail = this.existingUser.email;
+			this.userPosition = this.existingUser.position;
+			this.userLang = this.existingUser.lang;
+			this.userImageURL = this.existingUser.imageURL;
+			this.userMattermost = this.existingUser.mattermostID;
+			this.mattermostIsReadOnly = true;
+			this.userTeamID = this.existingUser.team._id;
+
+			this.userWechat = this.existingUser.wechat;
+			this.userPhone = this.existingUser.phoneNum;
+			this.userIntroduction = this.existingUser.introduction;
+			// this.userTeam = this.existingUser.team.name;
+		} else if (this.newMattermostUser) {
+			this.$store.dispatch('getMattermostDetails').then(() => {
+				if (
+					this.mattermostDetails.first_name &&
+					this.mattermostDetails.last_name
+				) {
+					this.userName =
+						this.mattermostDetails.first_name +
+						' ' +
+						this.mattermostDetails.last_name;
+					this.userNameIsReadOnly = true;
+				}
+				if (this.mattermostDetails.email) {
+					this.userEmail = this.mattermostDetails.email;
+					this.emailIsReadOnly = true;
+				}
+				if (this.mattermostDetails.position) {
+					this.userPosition = this.mattermostDetails.position;
+					this.positionIsReadOnly = true;
+				}
+				if (this.mattermostDetails.locale === 'zh-CN') {
+					this.userLang = '中文';
+				}
+				if (this.mattermostDetails.mattermostImgURL) {
+					this.userImageURL = this.mattermostDetails.mattermostImgURL;
+				}
+				if (this.mattermostDetails.id) {
+					this.userMattermost = this.mattermostDetails.id;
+					this.mattermostIsReadOnly = true;
+				}
+				return this.$store.dispatch('loadTeams');
+			});
+		}
+
+		if (this.userLang === 'english') {
+			this.userLang = 'English';
+		} else if (this.userLang === 'chinese') {
+			this.userLang = '中文';
+		}
+	},
+	watch: {
+		userName: 'checkFormValidity',
+		userEmail: 'checkFormValidity',
+		userWechat: 'checkFormValidity',
+		userMattermost: 'checkFormValidity',
+		userPhone: 'checkFormValidity',
+		userLang: 'checkFormValidity',
+		userTeamID: 'checkFormValidity',
+		userPosition: 'checkFormValidity',
+		userIntroduction: 'checkFormValidity',
+		userImageURL: 'checkFormValidity'
+	},
+	methods: {
+		cancel() {
+			this.$emit('cancel-event');
+		},
+		checkFormValidity() {
+			if (
+				this.$refs.createUserForm &&
+				this.$refs.createUserForm.checkValidity
+			) {
+				if (
+					this.userImage &&
+					this.$refs.userImage &&
+					this.$refs.userImage.validate
+				) {
+					console.log('trying to validate image');
+					if (
+						(this.$refs.userImage &&
+							this.$refs.userImage.validate) ||
+						(this.mattermostDetails && this.mattermostDetails.id)
+					) {
+						this.formIsValid =
+							this.userTeamID &&
+							((this.$refs.userImage.validate() &&
+								this.$refs.createUserForm.checkValidity()) ||
+								(this.mattermostDetails &&
+									this.mattermostDetails.id &&
+									this.userImageURL));
+					}
+					return;
+				} else {
+					// 					console.log('no image but still valid because edit');
+					this.formIsValid =
+						this.$refs.createUserForm.checkValidity() &&
+						this.userTeamID;
+					return;
+				}
+			} else {
+				this.formIsValid = false;
+				return;
+			}
+		},
+		emitUserDetails() {
+			if (!this.formIsValid) {
+				this.$store.dispatch('setError', 'Invalid input information.');
+				return;
+			}
+			const userData = {
+				name: this.userName,
+				email: this.userEmail,
+				wechat: this.userWechat,
+				mattermostID: this.userMattermost,
+				phoneNum: this.userPhone,
+				lang: this.userLang,
+				team: this.userTeamID,
+				position: this.userPosition,
+				introduction: this.userIntroduction
+			};
+			this.$emit('submit-event', {
+				userData: userData,
+				image: this.userImage,
+				imageURL: this.userImageURL
+			});
+			// this.$store.dispatch('createUser', {userData: userData, image: this.userImage, imageURL: this.userImageURL, redirect: true});
+		},
+		onFilePicked(file) {
+			if (file) {
+				let filename = file.name;
+				if (!this.$refs.userImage.validate()) {
+					return;
+				}
+				const fileReader = new FileReader();
+				fileReader.addEventListener('load', () => {
+					this.userImageURL = fileReader.result;
+					this.userImageName = filename;
+				});
+				fileReader.readAsDataURL(file);
+				this.userImage = file;
+			} else {
+				this.userImageURL = '';
+				this.userImage = null;
+				this.userImageName = '';
+			}
+		}
+	}
+};
+</script>

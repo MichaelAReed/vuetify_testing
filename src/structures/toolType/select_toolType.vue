@@ -6,7 +6,7 @@
 					<img :src="toolTypeImageURL"></v-img>
 				</v-avatar>
 			</v-col>
-			<v-col cols="10">
+			<v-col cols="9" offset="1">
 				<v-select
 					name="ToolType"
 					@input="handleInput"

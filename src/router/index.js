@@ -55,31 +55,31 @@ const router = new Router({
 	routes: [
 		{
 			path: '/',
-// 			path: '/home',
+			// 			path: '/home',
 			name: 'home',
 			component: Home
 		},
-// 		{
-// 			path: '/profile',
-// 			name: 'profile',
-// 			component: Profile,
-// 			beforeEnter: AuthGuard
-// 		},
-// 		{
-// 			path: '/login',
-// 			name: 'login',
-// 			component: Login
-// 		},
-// 		{
-// 			path: '/signup',
-// 			name: 'signup',
-// 			component: SignUp
-// 		},
+		// 		{
+		// 			path: '/profile',
+		// 			name: 'profile',
+		// 			component: Profile,
+		// 			beforeEnter: AuthGuard
+		// 		},
+		// 		{
+		// 			path: '/login',
+		// 			name: 'login',
+		// 			component: Login
+		// 		},
+		// 		{
+		// 			path: '/signup',
+		// 			name: 'signup',
+		// 			component: SignUp
+		// 		},
 		{
 			path: '/bookroom',
 			name: 'bookRoom',
 			component: ToolTypes,
-			props: {onlyRooms: true},
+			props: { onlyRooms: true },
 			beforeEnter: AuthGuard
 		},
 		{
@@ -109,7 +109,7 @@ const router = new Router({
 		},
 		{
 			path: '/users/newMattermostUser',
-// 			path: '/',
+			// 			path: '/',
 			name: 'newMattermostUser',
 			component: NewMattermostUser
 		},
@@ -232,22 +232,22 @@ router.beforeEach((to, from, next) => {
 	const lastRouteName = localStorage.getItem("LAST_ROUTE");
 	const lastRouteID = localStorage.getItem("LAST_ROUTE_ID");
 
-	const shouldRedirect = Boolean( to.name === "user" && lastRouteName );
+	const shouldRedirect = Boolean(to.name === "user" && lastRouteName);
 
 	if (shouldRedirect) {
 		store.dispatch('loadEverything')
-		.then(() => {
-			console.log("redirecting");
-			console.log(lastRouteID);
-			localStorage.removeItem("LAST_ROUTE");
-			localStorage.removeItem("LAST_ROUTE_ID");
-			next({ name: lastRouteName, params: {id: lastRouteID} });
-		})
-		.catch((err) => {
-			next(err);
-		});
+			.then(() => {
+				// console.log("redirecting");
+				// console.log(lastRouteID);
+				localStorage.removeItem("LAST_ROUTE");
+				localStorage.removeItem("LAST_ROUTE_ID");
+				next({ name: lastRouteName, params: { id: lastRouteID } });
+			})
+			.catch((err) => {
+				next(err);
+			});
 	} else {
-		console.log("not redirecting");
+		// console.log("not redirecting");
 		next();
 	}
 });

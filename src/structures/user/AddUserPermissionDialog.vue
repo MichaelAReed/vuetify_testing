@@ -33,8 +33,8 @@
 					<v-card-text>
 						<v-row>
 							<v-col cols="1">
-								<v-avatar>
-									<img :src="toolTypeImageURL"></v-img>
+								<v-avatar v-if="toolType">
+									<img :src="toolType.imageURL">
 								</v-avatar>
 							</v-col>
 							<v-col cols="10" offset="1">
@@ -42,8 +42,8 @@
 									name="ToolType"
 									:items="toolTypesList"
 									label="Tool Type/Category"
-									id="toolType"
-									v-model="toolType"
+									id="toolTypeName"
+									v-model="toolTypeName"
 									:rules="toolTypeRules"
 									chips
 									required
@@ -80,15 +80,47 @@
 						</v-row>
 						<v-row>
 							<v-col cols="12">
+								<h4>Usage Instructions:</h4>
+								<a :href="toolType.instructionsURL">Link to instructions on Wiki</a>
+								<br>
+								You must read, understand and follow at all times.
+							</v-col>
+						</v-row>
+						<v-row>
+							<v-col cols="12">
+								<h4>Hazards:</h4>
+								<div v-if="toolType && toolType.hazards">
+									<app-chip-hazard
+										v-for="hazardDef in toolType.hazards"
+										:key="hazardDef.hazard._id"
+										:hazard="hazardDef.hazard"
+										:classVal="hazardDef.classVal"
+									></app-chip-hazard>
+								</div>
+								You must read and understand the details of each hazard then follow all listed safety precautions.
+							</v-col>
+						</v-row>
+						<v-row>
+							<v-col cols="12">
 								<v-text-field
 									name="permissionExplanation"
-									label="Permission Explanation"
+									label="Provide a reason to allow access."
 									id="permission-explanation"
 									v-model="permissionExplanation"
 									:rules="stdRules"
 									required
 								>
 								</v-text-field>
+							</v-col>
+						</v-row>
+						<v-row>
+							<v-col cols="12">
+								I have read and understand all instructions and safety rules in the wiki URL. I have read and understand the associated risks involved with using this tool. I understand that the instructions, safety rules and hazards listed may not be comprehensive and are only provided as a recommended guideline for safe use. I take full responsibility for the dangers and associated liability to myself and those around me. I understand my access to this equipment may be immediately revoked due to my not following the provided instructions or rules or for any other reason not listed as dictated by a workshop manager.
+								<v-switch
+								v-model="acceptedTerms"
+								required
+								label="I Agree"
+								></v-switch>
 							</v-col>
 						</v-row>
 					</v-card-text>
@@ -118,10 +150,11 @@ export default {
 		return {
 			editDialog: 		false,
 			permittedNotBanned: true,
-			toolType: 			'',
+			toolTypeName: 			'',
 			hasExpiration: 		false,
 			expirationDate: 	new Date().toISOString().substr(0, 10),
 			permissionExplanation: 	'',
+			acceptedTerms:		false,
 
 			stdRules: [
 				value => !!value || 'Cannot be blank.'
@@ -135,7 +168,7 @@ export default {
 		};
 	},
 // 	watch: {
-// 		toolType: 				'checkFormValidity',
+// 		toolTypeName: 				'checkFormValidity',
 // 		permittedNotBanned: 	'checkFormValidity',
 // 		hasExpiration:			'checkFormValidity',
 // 		expirationDate:			'checkFormValidity',
@@ -145,17 +178,12 @@ export default {
 		loading() {
 			return this.$store.getters.loading;
 		},
-		toolTypeImageURL() {
-			if (this.toolTypesList.length > 0) {
-				return this.$store.getters.loadedToolType(this.toolTypesListDict[this.toolType]).imageURL;
-			} else {
-				return "";
-			}
-		},
 		toolTypeInput() {
 			if (this.toolTypeInputID) return this.$store.getters.loadedToolType(this.toolTypeInputID);
 			return null;
-
+		},
+		toolType() {
+			return this.$store.getters.loadedToolType(this.toolTypesListDict[this.toolTypeName]);
 		},
 // 		formIsValid() {
 // 			console.log("computing form is valid.");
@@ -198,7 +226,7 @@ export default {
 			this.editDialog = false;
 			if (!this.hasExpiration) this.expirationDate = null;
 			const permissionData = {
-				toolType: 			this.toolTypesListDict[this.toolType],
+				toolType: 			this.toolTypesListDict[this.toolTypeName],
 				permittedNotBanned: this.permittedNotBanned,
 				expiry: 			this.expirationDate,
 				explanation: 		this.permissionExplanation
@@ -221,7 +249,7 @@ export default {
 				}
 				currentToolType = this.$store.getters.loadedToolType(currentToolType.parent._id);
 			}
-			this.toolType = this.toolTypesList[0];
+			this.toolTypeName = this.toolTypesList[0];
 		} else {
 			for (let toolType of this.$store.getters.loadedToolTypes(true, true)) {
 // 				if (!toolType.userHasPermission && !toolType.userHasRequestedPermission) {
@@ -232,7 +260,7 @@ export default {
 	// 				this.toolType = toolType['name'];
 	// 			}
 			}
-			if (!this.toolType) this.toolType = this.toolTypesList[0];
+			if (!this.toolTypeName) this.toolTypeName = this.toolTypesList[0];
 		}
 	}
 }

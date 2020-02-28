@@ -5,8 +5,7 @@
 			:permissionNotBan="true"
 			:userID="requestingUserID"
 			:deletable="false"
-		>
-		</app-chip-permissionOrBan>
+		></app-chip-permissionOrBan>
 		Submitted: {{ permissionRequest.created | date }}
 		<v-text-field
 			v-if="loggedInUser.isAdmin"
@@ -15,10 +14,13 @@
 			v-model="permExplanation"
 			:rules="stdRules"
 			required
-		>
-		</v-text-field>
+		></v-text-field>
 		<v-btn class="mb-2 mt-2 ml-2" v-if="loggedInUser.isAdmin" @click="approveRequest">Approve Request</v-btn>
-		<v-btn class="error mb-2 mt-2 ml-2" v-if="loggedInUser.isAdmin" @click="deleteRequest">Delete Request</v-btn>
+		<v-btn
+			class="error mb-2 mt-2 ml-2"
+			v-if="loggedInUser.isAdmin"
+			@click="deleteRequest"
+		>Delete Request</v-btn>
 	</form>
 </template>
 
@@ -28,10 +30,8 @@ export default {
 	data() {
 		return {
 			permExplanation: this.permissionRequest.explanation,
-			stdRules: [
-				value => !!value || 'Cannot be blank.'
-			]
-		}
+			stdRules: [value => !!value || 'Cannot be blank.']
+		};
 	},
 	computed: {
 		toolType() {
@@ -41,11 +41,14 @@ export default {
 			return this.$store.getters.user;
 		},
 		formIsValid() {
-			if (this.$refs.approvePermissionForm && this.$refs.approvePermissionForm.checkValidity) {
+			if (
+				this.$refs.approvePermissionForm &&
+				this.$refs.approvePermissionForm.checkValidity
+			) {
 				return this.$refs.approvePermissionForm.checkValidity();
 			}
 			return false;
-		},
+		}
 	},
 	methods: {
 		approveRequest() {
@@ -56,16 +59,24 @@ export default {
 			console.log(`userID: ${this.permissionRequest.toolType}`);
 			if (!this.hasExpiration) this.expirationDate = null;
 			const permissionData = {
-				toolType: 			this.permissionRequest.toolType,
+				toolType: this.permissionRequest.toolType._id,
 				permittedNotBanned: true,
 				//expiry: 			this.expirationDate,
-				explanation: 		this.permExplanation
+				explanation: this.permExplanation
 			};
-			this.$store.dispatch('addPermissionToUser', {userID: this.requestingUserID, permissionData: permissionData});
-// 			this.$store.dispatch('deletePermissionRequest', {userID: this.requestingUserID, permissionData: {toolTypeID: this.permissionRequest.toolType._id}});
+			this.$store.dispatch('addPermissionToUser', {
+				userID: this.requestingUserID,
+				permissionData: permissionData
+			});
+			// 			this.$store.dispatch('deletePermissionRequest', {userID: this.requestingUserID, permissionData: {toolTypeID: this.permissionRequest.toolType._id}});
 		},
 		deleteRequest() {
-			this.$store.dispatch('deletePermissionRequest', {userID: this.requestingUserID, permissionData: {toolTypeID: this.permissionRequest.toolType._id}});
+			this.$store.dispatch('deletePermissionRequest', {
+				userID: this.requestingUserID,
+				permissionData: {
+					toolTypeID: this.permissionRequest.toolType._id
+				}
+			});
 		}
 	}
 };
